@@ -1,0 +1,27 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+        mavenLocal()
+    }
+    plugins {
+        id "${quarkusPluginId}" version "${quarkusPluginVersion}"
+    }
+}
+
+rootProject.name = 'clean-architecture-quarkus'
+
+include 'common'
+project(':common').projectDir = file('src/common')
+
+include 'adapter'
+project(':adapter').projectDir = file('src/adapter')
+
+include 'application'
+project(':application').projectDir = file('src/application')
+
+include 'domain'
+project(':domain').projectDir = file('src/domain')
+
+include 'infrastructure'
+project(':infrastructure').projectDir = file('src/infrastructure')

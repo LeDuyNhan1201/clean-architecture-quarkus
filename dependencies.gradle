@@ -1,0 +1,12 @@
+ext {
+    versions = [
+
+    ]
+
+    libs = [
+        quarkusArc       : "io.quarkus:quarkus-arc",
+        quarkusRest    : "io.quarkus:quarkus-rest",
+        quarkusJunit : "io.quarkus:quarkus-junit5",
+        restAssured: "io.rest-assured:rest-assured"
+    ]
+}

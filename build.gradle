@@ -1,0 +1,63 @@
+plugins {
+    id 'java'
+    id 'io.quarkus'
+}
+
+apply from: 'dependencies.gradle'
+
+allprojects {
+    group = 'org.tma.intern'
+    version = '1.0.0-SNAPSHOT'
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(javaVersion.toInteger())
+        }
+    }
+
+    repositories {
+        mavenCentral()
+
+    }
+}
+
+subprojects {
+    apply {
+        plugin 'java'
+        plugin 'io.quarkus'
+    }
+
+    if (project.name == 'common') {
+        tasks.named("jar") {
+            enabled = true
+        }
+
+    } else {
+        tasks.named('test') {
+            useJUnitPlatform()
+        }
+    }
+
+    dependencies {
+        implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+        implementation rootProject.ext.libs.quarkusArc
+        testImplementation rootProject.ext.libs.quarkusJunit
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.compilerArgs << '-parameters'
+    }
+
+    test {
+        systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+    }
+
+}
+
+tasks.named('jar') {
+    enabled = false
+}
+
+tasks.named('build') {
+    enabled = false
+}

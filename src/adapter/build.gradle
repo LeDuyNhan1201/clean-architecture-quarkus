@@ -1,0 +1,6 @@
+dependencies {
+    implementation project(':application')
+
+    implementation rootProject.ext.libs.quarkusRest
+    testImplementation rootProject.ext.libs.restAssured
+}
