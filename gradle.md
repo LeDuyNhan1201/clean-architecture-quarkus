@@ -1,3 +1,3 @@
 gradle wrapper --gradle-version 8.13
 ./gradlew clean build -x test
-./gradlew :cdi-beans:quarkusDev
+./gradlew :adapter:quarkusDev
