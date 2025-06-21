@@ -1,0 +1,66 @@
+services:
+  # --------- Postgres ---------
+  postgres:
+    build:
+      context: ./postgres
+      args:
+        POSTGRES_DOCKER_TAG: ${POSTGRES_DOCKER_TAG:-latest}
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - fluxin-network
+    command: postgres -c 'max_connections=500'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d postgres"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    restart: unless-stopped
+    volumes:
+      - ./postgres/postgresql.conf.sample:/usr/share/postgresql/postgresql.conf.sample
+      - ./postgres/init-db:/docker-entrypoint-initdb.d:ro
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  # --------- Keycloak ---------
+  keycloak:
+    image: keycloak/keycloak:${KEYCLOAK_DOCKER_TAG:-latest}
+    container_name: keycloak
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+      - "9990:9990"
+    networks:
+      - fluxin-network
+    command: ["start-dev", "--health-enabled=true", "--import-realm"]
+    healthcheck:
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9990; echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost:9990\r\nConnection: close\r\n\r\n' >&3; cat <&3 | grep -q '\"status\": \"UP\"' && exit 0 || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    restart: unless-stopped
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    environment:
+      KC_HTTP_MANAGEMENT_PORT: 9990
+      KC_METRICS_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
+      KC_PROXY: edge
+      KEYCLOAK_IMPORT: /opt/keycloak/data/import/realm-export.json
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_PORT: 5432
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+volumes:
+  postgres-data:
