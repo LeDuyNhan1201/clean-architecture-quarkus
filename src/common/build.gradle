@@ -1,11 +1,3 @@
-plugins {
-    id 'java-library'
-}
-
 dependencies {
-
-}
-
-java {
-    withSourcesJar()
+    implementation rootProject.ext.libs.quarkusRest
 }

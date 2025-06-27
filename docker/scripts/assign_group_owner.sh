@@ -13,7 +13,7 @@ auth_token=$(curl -s -d "client_id=$SUPERUSER_CLIENT_ID" \
 
 echo "Access Token: $auth_token"
 
-MDS_RBAC_ENDPOINT=http://broker1:8091/security/1.0/principals
+MDS_RBAC_ENDPOINT=https://broker1:8091/security/1.0/principals
 
 # Gán role ResourceOwner cho group
 curl -X POST "$MDS_RBAC_ENDPOINT/User:$CLIENT_APP_ID/roles/ResourceOwner/bindings" \

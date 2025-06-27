@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'java-library'
     id 'io.quarkus'
 }
 
@@ -12,6 +13,9 @@ allprojects {
         toolchain {
             languageVersion = JavaLanguageVersion.of(javaVersion.toInteger())
         }
+        if (!project.name.contains('adapter')) {
+            withSourcesJar()
+        }
     }
 
     repositories {
@@ -21,9 +25,19 @@ allprojects {
 }
 
 subprojects {
-    apply {
-        plugin 'java'
-        plugin 'io.quarkus'
+    if (project.name != 'common') {
+        apply plugin: 'io.quarkus'
+    }
+
+    if (project.name.contains('adapter')) {
+        apply plugin: 'java'
+
+        tasks.withType(JavaCompile).configureEach {
+            options.encoding = 'UTF-8'
+            options.compilerArgs << '-parameters'
+        }
+    } else {
+        apply plugin: 'java-library'
     }
 
     if (project.name == 'common') {
@@ -35,21 +49,17 @@ subprojects {
         tasks.named('test') {
             useJUnitPlatform()
         }
+
+        test {
+            systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+        }
     }
 
     dependencies {
         implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
         implementation rootProject.ext.libs.quarkusArc
+
         testImplementation rootProject.ext.libs.quarkusJunit
-    }
-
-    tasks.withType(JavaCompile).configureEach {
-        options.encoding = 'UTF-8'
-        options.compilerArgs << '-parameters'
-    }
-
-    test {
-        systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
     }
 
 }

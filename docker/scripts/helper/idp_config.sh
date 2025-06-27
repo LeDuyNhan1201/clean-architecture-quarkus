@@ -1,9 +1,9 @@
 # IDP configurations
-export IDP_TOKEN_ENDPOINT=http://keycloak:8080/realms/cp/protocol/openid-connect/token
-export IDP_JWKS_ENDPOINT=http://keycloak:8080/realms/cp/protocol/openid-connect/certs
-export IDP_EXPECTED_ISSUER=http://keycloak:8080/realms/cp
-export IDP_AUTH_ENDPOINT=http://keycloak:8080/realms/cp/protocol/openid-connect/auth
-export IDP_DEVICE_AUTH_ENDPOINT=http://keycloak:8080/realms/cp/protocol/openid-connect/auth/device
+export IDP_TOKEN_ENDPOINT=https://keycloak:8443/realms/cp/protocol/openid-connect/token
+export IDP_JWKS_ENDPOINT=https://keycloak:8443/realms/cp/protocol/openid-connect/certs
+export IDP_EXPECTED_ISSUER=https://keycloak:8443/realms/cp
+export IDP_AUTH_ENDPOINT=https://keycloak:8443/realms/cp/protocol/openid-connect/auth
+export IDP_DEVICE_AUTH_ENDPOINT=https://keycloak:8443/realms/cp/protocol/openid-connect/auth/device
 export SUB_CLAIM_NAME=clientId
 export GROUP_CLAIM_NAME=groups
 export EXPECTED_AUDIENCE=account
@@ -11,10 +11,10 @@ export EXPECTED_AUDIENCE=account
 # Client configurations
 export APP_GROUP_NAME='/app_group1'
 
-export POSTGRES_USER=fluxin
+export POSTGRES_USER=ldnhan
 export POSTGRES_PASSWORD=123
 
-export KC_BOOTSTRAP_ADMIN_USERNAME=keycloak_admin
+export KC_BOOTSTRAP_ADMIN_USERNAME=ldnhan
 export KC_BOOTSTRAP_ADMIN_PASSWORD=123
 
 export SUPERUSER_CLIENT_ID=superuser_client_app
@@ -46,4 +46,11 @@ export SSO_CLIENT_SECRET=c3_sso_login_secret
 
 export SSO_SUPER_USER_GROUP=g1
 export SSO_USER_GROUP=g2
+
+export CERT_SECRET=120103
+
+export BROKER_HEAP=1G
+export SCHEMA_HEAP=512M
+
+export SSL_CIPHER_SUITES=TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 

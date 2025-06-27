@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - fluxin-network
+      - my-network
     command: postgres -c 'max_connections=500'
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d postgres"]
@@ -17,36 +17,85 @@ services:
       timeout: 10s
       start_period: 30s
       retries: 3
-    restart: unless-stopped
+    restart: always
     volumes:
-      - ./postgres/postgresql.conf.sample:/usr/share/postgresql/postgresql.conf.sample
       - ./postgres/init-db:/docker-entrypoint-initdb.d:ro
       - postgres-data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
+  quarkus-certgen:
+    build: ./certs
+    container_name: quarkus-certgen
+    networks:
+      - my-network
+    entrypoint: /app/generate_cert.sh
+    restart: no
+    volumes:
+      - ./scripts/helper/generate_cert.sh:/app/generate_cert.sh
+      - ./certs/ca:/ca
+      - ../src/adapter/src/main/resources/certs:/quarkus
+    environment:
+      - MAIN_DOMAIN=keycloak
+      - CERT_PASSWORD=${CERT_SECRET}
+
+  keycloak-certgen:
+    build: ./certs
+    container_name: keycloak-certgen
+    networks:
+      - my-network
+    entrypoint: /app/generate_cert.sh
+    restart: no
+    volumes:
+      - ./scripts/helper/generate_cert.sh:/app/generate_cert.sh
+      - ./certs/ca:/ca
+      - ./keycloak/certs:/keycloak
+    environment:
+      - MAIN_DOMAIN=keycloak
+      - CERT_PASSWORD=${CERT_SECRET}
+
   # --------- Keycloak ---------
   keycloak:
-    image: keycloak/keycloak:${KEYCLOAK_DOCKER_TAG:-latest}
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_DOCKER_TAG:-latest}
+    #    build:
+    #      context: ./keycloak
+    #      args:
+    #        KEYCLOAK_DOCKER_TAG: ${KEYCLOAK_DOCKER_TAG:-latest}
     container_name: keycloak
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      keycloak-certgen:
+        condition: service_completed_successfully
     ports:
-      - "8080:8080"
-      - "9990:9990"
+      - "8443:8443" # HTTPS
+      - "9990:9990" # Management port
     networks:
-      - fluxin-network
-    command: ["start-dev", "--health-enabled=true", "--import-realm"]
+      - my-network
+    command: [
+      "start",
+      "--https-certificate-file=/opt/keycloak/conf/cert.pem",
+      "--https-certificate-key-file=/opt/keycloak/conf/key.pem",
+      "--http-enabled=false",
+      "--https-port=8443",
+      "--hostname-strict=false",
+      "--health-enabled=true",
+      "--import-realm"
+    ]
     healthcheck:
-      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9990; echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost:9990\r\nConnection: close\r\n\r\n' >&3; cat <&3 | grep -q '\"status\": \"UP\"' && exit 0 || exit 1" ]
+      test: >
+        curl --fail --silent --insecure https://localhost:9990/health/ready | grep '"status":"UP"'
       interval: 30s
       timeout: 10s
       start_period: 30s
       retries: 3
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/certs/cert.pem:/opt/keycloak/conf/cert.pem:ro
+      - ./keycloak/certs/key.pem:/opt/keycloak/conf/key.pem:ro
+      - ./keycloak/export:/opt/keycloak/data/export
     environment:
       KC_HTTP_MANAGEMENT_PORT: 9990
       KC_METRICS_ENABLED: true
@@ -64,3 +113,4 @@ services:
 
 volumes:
   postgres-data:
+    driver: local

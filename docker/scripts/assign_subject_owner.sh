@@ -13,7 +13,7 @@ auth_token=$(curl -s -d "client_id=$SUPERUSER_CLIENT_ID" \
 
 echo "Access Token: $auth_token"
 
-MDS_RBAC_ENDPOINT=http://broker1:8091/security/1.0/principals
+MDS_RBAC_ENDPOINT=https://broker1:8091/security/1.0/principals
 
 # Gán quyền ResourceOwner cho topic
 curl -X POST "$MDS_RBAC_ENDPOINT/User:$CLIENT_APP_ID/roles/ResourceOwner/bindings" \
@@ -24,7 +24,7 @@ curl -X POST "$MDS_RBAC_ENDPOINT/User:$CLIENT_APP_ID/roles/ResourceOwner/binding
     \"scope\": {
       \"clusters\": {
         \"kafka-cluster\": \"vHCgQyIrRHG8Jv27qI2h3Q\",
-        \"schema-registry-cluster\": \"fluxin-schema-registry-cluster\"
+        \"schema-registry-cluster\": \schema-registry-cluster\"
       }
     },
     \"resourcePatterns\": [

@@ -1,11 +1,4 @@
-plugins {
-    id 'java-library'
-}
-
 dependencies {
     implementation project(':domain')
-}
-
-java {
-    withSourcesJar()
+    implementation project(':common')
 }

@@ -1,11 +1,4 @@
-plugins {
-    id 'java-library'
-}
-
 dependencies {
-
-}
-
-java {
-    withSourcesJar()
+    api rootProject.ext.libs.reactivePanache
+    implementation rootProject.ext.libs.postgresDriver
 }

@@ -1,6 +1,12 @@
 dependencies {
     implementation project(':application')
+    implementation project(':common')
 
     implementation rootProject.ext.libs.quarkusRest
+    implementation rootProject.ext.libs.reactiveRoute
+    implementation rootProject.ext.libs.swagger
+
     testImplementation rootProject.ext.libs.restAssured
+
+    runtimeOnly project(':infrastructure')
 }
