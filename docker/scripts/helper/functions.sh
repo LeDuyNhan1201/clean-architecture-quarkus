@@ -19,17 +19,7 @@ create_client_files() {
 create_env_file() {
     # Xóa nội dung file trước khi ghi
     : > ../.env
-
-#    echo DOCKER_REGISTRY=$DOCKER_REGISTRY > .env
-#    echo CONFLUENT=$CONFLUENT >> .env
-#    echo CONFLUENT_DOCKER_TAG=$CONFLUENT_DOCKER_TAG >> .env
-#    echo CONFLUENT_SHORT=$CONFLUENT_SHORT >> .env
-#    echo CONFLUENT_PREVIOUS=$CONFLUENT_PREVIOUS >> .env
-#    echo CONFLUENT_RELEASE_TAG_OR_BRANCH=$CONFLUENT_RELEASE_TAG_OR_BRANCH >> .env
-#    echo CONFLUENT_MAJOR=$CONFLUENT_MAJOR >> .env
-#    echo CONFLUENT_MINOR=$CONFLUENT_MINOR >> .env
-#    echo CONFLUENT_PATCH=$CONFLUENT_PATCH >> .env
-#    echo CP_VERSION_FULL=$CP_VERSION_FULL >> .env
+    : > ../kafka/broker1/certs/creds.txt
 
     echo POSTGRES_USER=$POSTGRES_USER >> ../.env
     echo POSTGRES_PASSWORD=$POSTGRES_PASSWORD >> ../.env
@@ -78,40 +68,13 @@ create_env_file() {
 
     echo KSQL_CLIENT_ID=$KSQL_CLIENT_ID >> ../.env
     echo KSQL_CLIENT_SECRET=$KSQL_CLIENT_SECRET >> ../.env
-}
 
-assign_group_owner() {
-  group_name="$1"
+    echo CERT_SECRET=$CERT_SECRET >> ../.env
+    echo $CERT_SECRET >> ../kafka/broker1/certs/creds
 
-  # Lấy access token từ IDP
-  auth_token=$(curl -s -d "client_id=$SUPERUSER_CLIENT_ID" \
-                    -d "client_secret=$SUPERUSER_CLIENT_SECRET" \
-                    -d "grant_type=client_credentials" \
-                    "$IDP_TOKEN_ENDPOINT" | \
-               grep -Po '"access_token": *\K"[^"]*"' | grep -o '[^"]*')
+    echo BROKER_HEAP=$BROKER_HEAP >> ../.env
+    echo SCHEMA_HEAP=$SCHEMA_HEAP >> ../.env
 
-  echo "Access Token: $auth_token"
-
-  MDS_RBAC_ENDPOINT=http://broker1:8091/security/1.0/principals
-
-  # Gán role ResourceOwner cho group
-  curl -X POST "$MDS_RBAC_ENDPOINT/User:$CLIENT_APP_ID/roles/ResourceOwner/bindings" \
-    -H "Authorization: Bearer $auth_token" \
-    -H "Content-Type: application/json" \
-    -H "Accept: application/json" \
-    -d "{
-      \"scope\": {
-        \"clusters\": {
-          \"kafka-cluster\": \"vHCgQyIrRHG8Jv27qI2h3Q\"
-        }
-      },
-      \"resourcePatterns\": [
-        {
-          \"resourceType\": \"Group\",
-          \"name\": \"$group_name\",
-          \"patternType\": \"LITERAL\"
-        }
-      ]
-    }"
+    echo SSL_CIPHER_SUITES=$SSL_CIPHER_SUITES >> ../.env
 }
 

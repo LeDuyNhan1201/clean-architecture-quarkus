@@ -20,7 +20,7 @@ create_client_files
 
 create_env_file
 
-docker-compose -f ../docker-compose.yml \
+docker compose -f ../docker-compose.yml \
 -f ../identity-server.yml \
 -f ../metrics-monitoring.yml \
 -f ../kafka-cluster.yml up -d

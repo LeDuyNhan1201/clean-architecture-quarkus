@@ -29,9 +29,9 @@ req_extensions     = req_ext
 
 [ dn ]
 C = VN
-ST = HCM
+ST = BinhTan
 L = HCM
-O = MyOrg
+O = TMA
 OU = Dev
 CN = $MAIN_DOMAIN
 

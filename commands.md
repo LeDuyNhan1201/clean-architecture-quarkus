@@ -15,4 +15,15 @@ docker rm -f -v postgres
 --realm quarkus \
 --users realm_file
 
+docker inspect keycloak | jq '.[0].State.Health.Log[] | {ExitCode, Output}'
+
+sudo find . -name '*certs*' -exec sudo chattr -i {} \;
+sudo find . -name '*certs*' -exec sudo chown -R $USER:$USER {} \;
+sudo find . -name '*certs*' -exec sudo chmod -R u+rw {} \;
+
+bash
+sudo ./start.sh
+sudo ./stop.sh
+
+
 
