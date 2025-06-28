@@ -95,8 +95,7 @@ services:
     restart: always
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
-      - ./keycloak/certs/cert.pem:/opt/keycloak/conf/cert.pem:ro
-      - ./keycloak/certs/key.pem:/opt/keycloak/conf/key.pem:ro
+      - ./keycloak/certs:/opt/keycloak/conf:ro
       - ./keycloak/export:/opt/keycloak/data/export
     environment:
       KC_HTTP_MANAGEMENT_PORT: 9990

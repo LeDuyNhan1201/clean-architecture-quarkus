@@ -19,7 +19,7 @@ create_client_files() {
 create_env_file() {
     # Xóa nội dung file trước khi ghi
     : > ../.env
-    : > ../kafka/broker1/certs/creds.txt
+    : > ../kafka/broker1/certs/creds
 
     echo POSTGRES_USER=$POSTGRES_USER >> ../.env
     echo POSTGRES_PASSWORD=$POSTGRES_PASSWORD >> ../.env

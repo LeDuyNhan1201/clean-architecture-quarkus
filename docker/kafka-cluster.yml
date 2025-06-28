@@ -1,4 +1,16 @@
 services:
+  keypairgen:
+    image: alpine/openssl
+    container_name: keypairgen
+    networks:
+      - my-network
+    entrypoint: /bin/sh
+    command: "/usr/bin/generate_keypair.sh"
+    restart: no
+    volumes:
+      - ./scripts/helper/generate_keypair.sh:/usr/bin/generate_keypair.sh
+      - ./kafka/keypair:/data
+
   broker1_certgen:
     build: ./certs
     container_name: broker1_certgen
@@ -23,6 +35,8 @@ services:
         condition: service_started
       broker1_certgen:
         condition: service_completed_successfully
+      keypairgen:
+        condition: service_completed_successfully
       prometheus:
         condition: service_healthy
     ports:
@@ -33,7 +47,7 @@ services:
       - "1234:1234"
     networks:
       - my-network
-    command: "bash -c 'if [ ! -f /etc/kafka/secrets/key.pem ]; then echo \"ERROR: Did you forget the create-certificates.sh file that came with this docker-compose.yml file?\" && exit 1 ; else /etc/confluent/docker/run ; fi'"
+    command: "bash -c 'if [ ! -f /tmp/conf/public.pem ]; then echo \"ERROR: Did you forget the create-certificates.sh file that came with this docker-compose.yml file?\" && exit 1 ; else /etc/confluent/docker/run ; fi'"
     healthcheck:
       test: curl -fail --silent --insecure https://broker1:8091/v1/metadata/id || exit 1
       interval: 30s
@@ -43,6 +57,7 @@ services:
     restart: unless-stopped
     volumes:
       - broker1-data:/var/lib/kafka/data
+      - ./kafka/keypair:/tmp/conf
       - ./kafka/broker1/certs:/etc/kafka/secrets
       - ./kafka/configs:/etc/confluent/configs
       - ./kafka/bin/confluent:/usr/bin/confluent
@@ -82,43 +97,25 @@ services:
 
       # encryption
       KAFKA_SECURITY_PROTOCOL: SASL_SSL
-      KAFKA_SSL_CLIENT_AUTH: 'required'
-#      KAFKA_SSL_CLIENT_AUTH: 'requested'
-#      KAFKA_SSL_KEYSTORE_LOCATION: /tmp/certs/keystore.p12
-#      KAFKA_SSL_KEYSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_SSL_ENABLED_MECHANISMS: PLAIN,SSL
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+#      KAFKA_SSL_CLIENT_AUTH: 'required'
+      KAFKA_SSL_CLIENT_AUTH: 'requested'
+      KAFKA_SSL_KEYSTORE_LOCATION: /tmp/certs/keystore.p12
+      KAFKA_SSL_KEYSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_SSL_KEY_PASSWORD: ${CERT_SECRET}
+      KAFKA_SSL_KEYSTORE_TYPE: PKCS12
       KAFKA_SSL_KEYSTORE_FILENAME: keystore.p12
       KAFKA_SSL_KEYSTORE_CREDENTIALS: creds
       KAFKA_SSL_KEY_CREDENTIALS: creds
-#      KAFKA_SSL_TRUSTSTORE_LOCATION: /tmp/certs/truststore.p12
-#      KAFKA_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /tmp/certs/truststore.p12
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
       KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.p12
       KAFKA_SSL_TRUSTSTORE_CREDENTIALS: creds
       KAFKA_SSL_CIPHER_SUITES: ${SSL_CIPHER_SUITES}
 
-#      KAFKA_SSL_ENABLED_MECHANISMS: PLAIN,SSL
-#      KAFKA_SSL_KEYSTORE_FILENAME: keystore.p12
-#      KAFKA_SSL_KEYSTORE_CREDENTIALS: creds
-#      KAFKA_SSL_KEY_CREDENTIALS: creds
-#      KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.p12
-#      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: creds
-
-      # Token Listener
-#      KAFKA_LISTENER_NAME_TOKEN_SASL_MECHANISMS: OAUTHBEARER
-#      KAFKA_LISTENER_NAME_TOKEN_SASL_ENABLED_MECHANISMS: OAUTHBEARER
-#      KAFKA_LISTENER_NAME_TOKEN_OAUTHBEARER_SASL_JAAS_CONFIG: |
-#        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
-#        publicKeyPath="/tmp/certs/cert.pem";
-#      KAFKA_LISTENER_NAME_TOKEN_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: io.confluent.kafka.server.plugins.auth.token.TokenBearerValidatorCallbackHandler
-#      KAFKA_LISTENER_NAME_TOKEN_OAUTHBEARER_SASL_LOGIN_CALLBACK_HANDLER_CLASS: io.confluent.kafka.server.plugins.auth.token.TokenBearerServerLoginCallbackHandler
-#
-#      KAFKA_LISTENER_NAME_TOKEN_SSL_KEYSTORE_LOCATION: /tmp/certs/keystore.p12
-#      KAFKA_LISTENER_NAME_TOKEN_SSL_KEYSTORE_PASSWORD: ${CERT_SECRET}
-#      KAFKA_LISTENER_NAME_TOKEN_SSL_TRUSTSTORE_LOCATION: /tmp/certs/truststore.p12
-#      KAFKA_LISTENER_NAME_TOKEN_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
-#      KAFKA_LISTENER_NAME_TOKEN_SSL_PRINCIPAL_MAPPING_RULES: RULE:^cn=([a-zA-Z0-9.]*).*$$/$$1/L,DEFAULT
-
       # Internal Listener
-      KAFKA_LISTENER_NAME_INTERNAL_SASL_MECHANISM: PLAIN
       KAFKA_LISTENER_NAME_INTERNAL_SASL_ENABLED_MECHANISMS: PLAIN
       KAFKA_LISTENER_NAME_INTERNAL_PLAIN_SASL_JAAS_CONFIG: |
         org.apache.kafka.common.security.plain.PlainLoginModule required \
@@ -130,8 +127,15 @@ services:
 
       KAFKA_LISTENER_NAME_INTERNAL_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore.p12
       KAFKA_LISTENER_NAME_INTERNAL_SSL_KEYSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_LISTENER_NAME_INTERNAL_SSL_KEY_PASSWORD: ${CERT_SECRET}
       KAFKA_LISTENER_NAME_INTERNAL_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/truststore.p12
       KAFKA_LISTENER_NAME_INTERNAL_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_LISTENER_NAME_INTERNAL_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_LISTENER_NAME_INTERNAL_SSL_KEYSTORE_FILENAME: truststore.p12
+      KAFKA_LISTENER_NAME_INTERNAL_SSL_KEYSTORE_CREDENTIALS: creds
+      KAFKA_LISTENER_NAME_INTERNAL_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_LISTENER_NAME_INTERNAL_SSL_TRUSTSTORE_FILENAME: truststore.p12
+      KAFKA_LISTENER_NAME_INTERNAL_SSL_TRUSTSTORE_CREDENTIALS: creds
 #      KAFKA_LISTENER_NAME_INTERNAL_SSL_PRINCIPAL_MAPPING_RULES: RULE:^cn=([a-zA-Z0-9.]*).*$$/$$1/L,DEFAULT
 
       # Controller Listener
@@ -145,7 +149,6 @@ services:
       KAFKA_LISTENER_NAME_CONTROLLER_PRINCIPAL_BUILDER_CLASS: io.confluent.kafka.security.authenticator.OAuthKafkaPrincipalBuilder
 
       # External OAuth (Keycloak)
-      KAFKA_LISTENER_NAME_EXTERNAL_SASL_MECHANISM: OAUTHBEARER
       KAFKA_LISTENER_NAME_EXTERNAL_SASL_ENABLED_MECHANISMS: OAUTHBEARER
       KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: ${IDP_JWKS_ENDPOINT}
       KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: ${EXPECTED_AUDIENCE}
@@ -153,15 +156,22 @@ services:
       KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_JAAS_CONFIG: |
         org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
             unsecuredLoginStringClaim_sub="thePrincipalName" \
-            publicKeyPath="/etc/kafka/secrets/cert.pem" \
+            publicKeyPath="/tmp/conf/public.pem" \
             scope="${GROUP_CLAIM_NAME}";
       KAFKA_LISTENER_NAME_EXTERNAL_PRINCIPAL_BUILDER_CLASS: io.confluent.kafka.security.authenticator.OAuthKafkaPrincipalBuilder
       KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: io.confluent.kafka.server.plugins.auth.token.CompositeBearerValidatorCallbackHandler
 
       KAFKA_LISTENER_NAME_EXTERNAL_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore.p12
       KAFKA_LISTENER_NAME_EXTERNAL_SSL_KEYSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_LISTENER_NAME_EXTERNAL_SSL_KEY_PASSWORD: ${CERT_SECRET}
       KAFKA_LISTENER_NAME_EXTERNAL_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/truststore.p12
       KAFKA_LISTENER_NAME_EXTERNAL_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_LISTENER_NAME_EXTERNAL_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_LISTENER_NAME_EXTERNAL_SSL_KEYSTORE_FILENAME: truststore.p12
+      KAFKA_LISTENER_NAME_EXTERNAL_SSL_KEYSTORE_CREDENTIALS: creds
+      KAFKA_LISTENER_NAME_EXTERNAL_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_LISTENER_NAME_EXTERNAL_SSL_TRUSTSTORE_FILENAME: truststore.p12
+      KAFKA_LISTENER_NAME_EXTERNAL_SSL_TRUSTSTORE_CREDENTIALS: creds
 #      KAFKA_LISTENER_NAME_EXTERNAL_SSL_PRINCIPAL_MAPPING_RULES: RULE:^cn=([a-zA-Z0-9.]*).*$$/$$1/L,DEFAULT
 
       # MDS (if enabled)
@@ -173,7 +183,7 @@ services:
 
       KAFKA_CONFLUENT_METADATA_SERVER_AUTHENTICATION_METHOD: BEARER
       KAFKA_CONFLUENT_METADATA_SERVER_USER_STORE: OAUTH
-      KAFKA_CONFLUENT_METADATA_SERVER_TOKEN_KEY_PATH: /etc/kafka/secrets/key.pem
+      KAFKA_CONFLUENT_METADATA_SERVER_TOKEN_KEY_PATH: /tmp/conf/public.pem
       KAFKA_CONFLUENT_METADATA_SERVER_TOKEN_AUTH_ENABLE: 'true'
       KAFKA_CONFLUENT_METADATA_SERVER_TOKEN_MAX_LIFETIME_MS: 3600000
       KAFKA_CONFLUENT_METADATA_SERVER_TOKEN_SIGNATURE_ALGORITHM: RS256
@@ -184,33 +194,70 @@ services:
       KAFKA_CONFLUENT_METADATA_SERVER_OAUTHBEARER_SUB_CLAIM_NAME: ${SUB_CLAIM_NAME}
       KAFKA_CONFLUENT_METADATA_SERVER_OAUTHBEARER_GROUPS_CLAIM_NAME: ${GROUP_CLAIM_NAME}
 
-      KAFKA_CONFLUENT_METADATA_SERVER_PUBLIC_KEY_PATH: /etc/kafka/secrets/cert.pem
+      KAFKA_CONFLUENT_METADATA_SERVER_PUBLIC_KEY_PATH: /tmp/conf/public.pem
       KAFKA_CONFLUENT_METADATA_SERVER_ENABLE_SERVERS_URLS_REFRESH: 'false'
       KAFKA_CONFLUENT_METADATA_SERVER_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: HTTPS
-
-      KAFKA_CONFLUENT_METADATA_SERVER_SSL_KEY_PASSWORD: ${CERT_SECRET}
+      KAFKA_CONFLUENT_METADATA_SERVER_SSL_CIPHER_SUITES: ${SSL_CIPHER_SUITES}
+      KAFKA_CONFLUENT_METADATA_SERVER_SSL_CLIENT_AUTHENTICATION: 'REQUIRED'
       KAFKA_CONFLUENT_METADATA_SERVER_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore.p12
       KAFKA_CONFLUENT_METADATA_SERVER_SSL_KEYSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_CONFLUENT_METADATA_SERVER_SSL_KEY_PASSWORD: ${CERT_SECRET}
       KAFKA_CONFLUENT_METADATA_SERVER_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/truststore.p12
       KAFKA_CONFLUENT_METADATA_SERVER_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_CONFLUENT_METADATA_SERVER_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_CONFLUENT_METADATA_SERVER_SSL_KEYSTORE_FILENAME: keystore.p12
+      KAFKA_CONFLUENT_METADATA_SERVER_SSL_KEYSTORE_CREDENTIALS: creds
+      KAFKA_CONFLUENT_METADATA_SERVER_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_CONFLUENT_METADATA_SERVER_SSL_TRUSTSTORE_FILENAME: keystore.p12
+      KAFKA_CONFLUENT_METADATA_SERVER_SSL_TRUSTSTORE_CREDENTIALS: creds
+
+      # Rest client
+      KAFKA_KAFKA_REST_BOOTSTRAP_SERVERS: SASL_SSL://broker1:59092
+      KAFKA_KAFKA_REST_CLIENT_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_KAFKA_REST_CLIENT_CONFLUENT_METADATA_SERVER_URLS_MAX_AGE_MS: 60000
+      KAFKA_KAFKA_REST_CLIENT_SASL_MECHANISM: OAUTHBEARER
+      KAFKA_KAFKA_REST_CLIENT_SASL_JAAS_CONFIG: |
+        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
+            metadataServerUrls="https://broker1:8091" \
+            username="admin" \
+            user_admin="admin-secret" \
+            user_mds="mds-secret";
+
+      KAFKA_KAFKA_REST_CLIENT_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore.jks
+      KAFKA_KAFKA_REST_CLIENT_SSL_KEYSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_KAFKA_REST_CLIENT_SSL_KEY_PASSWORD: ${CERT_SECRET}
+      KAFKA_KAFKA_REST_CLIENT_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/truststore.jks
+      KAFKA_KAFKA_REST_CLIENT_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_KAFKA_REST_CLIENT_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_KAFKA_REST_CLIENT_SSL_KEYSTORE_FILENAME: keystore.p12
+      KAFKA_KAFKA_REST_CLIENT_SSL_KEYSTORE_CREDENTIALS: creds
+      KAFKA_KAFKA_REST_CLIENT_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_KAFKA_REST_CLIENT_SSL_TRUSTSTORE_FILENAME: keystore.p12
+      KAFKA_KAFKA_REST_CLIENT_SSL_TRUSTSTORE_CREDENTIALS: creds
 
       # EmbeddedKafkaRest
       KAFKA_KAFKA_REST_ENABLE: 'true'
-      KAFKA_KAFKA_REST_CLIENT_SECURITY_PROTOCOL: SASL_SSL
-      KAFKA_KAFKA_REST_BOOTSTRAP_SERVERS: SASL_SSL://broker1:59092
       KAFKA_KAFKA_REST_SCHEMA_REGISTRY_URL: https://schema-registry1:8081
-
       KAFKA_KAFKA_REST_OAUTHBEARER_JWKS_ENDPOINT_URL: ${IDP_JWKS_ENDPOINT}
       KAFKA_KAFKA_REST_OAUTHBEARER_EXPECTED_ISSUER: ${IDP_EXPECTED_ISSUER}
       KAFKA_KAFKA_REST_OAUTHBEARER_EXPECTED_AUDIENCE: ${EXPECTED_AUDIENCE}
       KAFKA_KAFKA_REST_OAUTHBEARER_SUB_CLAIM_NAME: ${SUB_CLAIM_NAME}
       KAFKA_KAFKA_REST_OAUTHBEARER_GROUPS_CLAIM_NAME: ${GROUP_CLAIM_NAME}
       KAFKA_KAFKA_REST_KAFKA_REST_RESOURCE_EXTENSION_CLASS: io.confluent.kafkarest.security.KafkaRestSecurityResourceExtension
-      KAFKA_KAFKA_REST_REST_SERVLET_INITIALIZOR_CLASSES: io.confluent.common.security.jetty.initializer.AuthenticationHandler
+      KAFKA_KAFKA_REST_REST_SERVLET_INITIALIZER_CLASSES: io.confluent.common.security.jetty.initializer.AuthenticationHandler
 
-      KAFKA_KAFKA_REST_PUBLIC_KEY_PATH: /etc/kafka/secrets/cert.pem
+      KAFKA_KAFKA_REST_PUBLIC_KEY_PATH: /tmp/conf/public.pem
+      KAFKA_KAFKA_REST_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore.p12
+      KAFKA_KAFKA_REST_SSL_KEYSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_KAFKA_REST_SSL_KEY_PASSWORD: ${CERT_SECRET}
       KAFKA_KAFKA_REST_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/truststore.p12
       KAFKA_KAFKA_REST_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_KAFKA_REST_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_KAFKA_REST_SSL_KEYSTORE_FILENAME: keystore.p12
+      KAFKA_KAFKA_REST_SSL_KEYSTORE_CREDENTIALS: creds
+      KAFKA_KAFKA_REST_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_KAFKA_REST_SSL_TRUSTSTORE_FILENAME: keystore.p12
+      KAFKA_KAFKA_REST_SSL_TRUSTSTORE_CREDENTIALS: creds
 
       # EmbeddedKafkaRest: MDS Client configuration
       KAFKA_KAFKA_REST_CONFLUENT_METADATA_BOOTSTRAP_SERVER_URLS: https://broker1:8091
@@ -219,14 +266,53 @@ services:
       KAFKA_KAFKA_REST_CONFLUENT_METADATA_OAUTHBEARER_LOGIN_CLIENT_ID: ${RP_CLIENT_ID}
       KAFKA_KAFKA_REST_CONFLUENT_METADATA_OAUTHBEARER_LOGIN_CLIENT_SECRET: ${RP_CLIENT_SECRET}
       KAFKA_KAFKA_REST_CONFLUENT_METADATA_SERVER_URLS_MAX_AGE_MS: 60000
-      KAFKA_KAFKA_REST_CLIENT_CONFLUENT_METADATA_SERVER_URLS_MAX_AGE_MS: 60000
+
+      # metrics reporter
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=broker1 -Dcom.sun.management.jmxremote.rmi.port=9101
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker1:29092
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1 # = broker count
+      CONFLUENT_METRICS_REPORTER_PUBLISH_MS: 30000
+      CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_SSL
+      CONFLUENT_METRICS_REPORTER_SASL_MECHANISM: PLAIN
+      CONFLUENT_METRICS_REPORTER_SASL_JAAS_CONFIG: |
+        org.apache.kafka.common.security.plain.PlainLoginModule required \
+        username="admin" \
+        password="admin-secret" \
+        user_admin="admin-secret" \
+        user_mds="mds-secret";
+      CONFLUENT_METRICS_REPORTER_PRINCIPAL_BUILDER_CLASS: io.confluent.kafka.security.authenticator.OAuthKafkaPrincipalBuilder
+
+      CONFLUENT_METRICS_REPORTER_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore.p12
+      CONFLUENT_METRICS_REPORTER_SSL_KEYSTORE_PASSWORD: ${CERT_SECRET}
+      CONFLUENT_METRICS_REPORTER_SSL_KEY_PASSWORD: ${CERT_SECRET}
+      CONFLUENT_METRICS_REPORTER_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/truststore.p12
+      CONFLUENT_METRICS_REPORTER_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
+      CONFLUENT_METRICS_REPORTER_SSL_KEYSTORE_TYPE: PKCS12
+      CONFLUENT_METRICS_REPORTER_SSL_KEYSTORE_FILENAME: keystore.p12
+      CONFLUENT_METRICS_REPORTER_SSL_KEYSTORE_CREDENTIALS: creds
+      CONFLUENT_METRICS_REPORTER_SSL_TRUSTSTORE_TYPE: PKCS12
+      CONFLUENT_METRICS_REPORTER_SSL_TRUSTSTORE_FILENAME: keystore.p12
+      CONFLUENT_METRICS_REPORTER_SSL_TRUSTSTORE_CREDENTIALS: creds
 
       # schema validation
       KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: https://schema-registry:8081
       KAFKA_CONFLUENT_OAUTHBEARER_LOGIN_CLIENT_ID: ${RP_CLIENT_ID}
       KAFKA_CONFLUENT_OAUTHBEARER_LOGIN_CLIENT_SECRET: ${RP_CLIENT_SECRET}
-      KAFKA_CONFLUENT_SSL_TRUSTSTORE_LOCATION: /tmp/certs/truststore.p12
+      KAFKA_CONFLUENT_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore.p12
+      KAFKA_CONFLUENT_REST_SSL_KEYSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_CONFLUENT_REST_SSL_KEY_PASSWORD: ${CERT_SECRET}
+      KAFKA_CONFLUENT_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/truststore.p12
       KAFKA_CONFLUENT_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
+      KAFKA_CONFLUENT_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_CONFLUENT_SSL_KEYSTORE_FILENAME: keystore.p12
+      KAFKA_CONFLUENT_SSL_KEYSTORE_CREDENTIALS: creds
+      KAFKA_CONFLUENT_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_CONFLUENT_SSL_TRUSTSTORE_FILENAME: keystore.p12
+      KAFKA_CONFLUENT_SSL_TRUSTSTORE_CREDENTIALS: creds
 
       # Enable SSO for Control Center
       KAFKA_CONFLUENT_METADATA_SERVER_SSO_MODE: oidc
@@ -256,26 +342,6 @@ services:
       KAFKA_CONFLUENT_TELEMETRY_ENABLED: 'false'
       KAFKA_CONFLUENT_REPORTERS_TELEMETRY_AUTO_ENABLED: 'false'
       KAFKA_CONFLUENT_SECURITY_EVENT_LOGGER_AUTHENTICATION_ENABLE: 'true'
-
-      # metrics reporter
-      KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: localhost
-      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker1:29092
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1 # = broker count
-      CONFLUENT_METRICS_REPORTER_PUBLISH_MS: 30000
-      CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_SSL
-      CONFLUENT_METRICS_REPORTER_SASL_MECHANISM: PLAIN
-      CONFLUENT_METRICS_REPORTER_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.plain.PlainLoginModule required \
-        username="admin" \
-        password="admin-secret";
-
-      CONFLUENT_METRICS_REPORTER_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore.p12
-      CONFLUENT_METRICS_REPORTER_SSL_KEYSTORE_PASSWORD: ${CERT_SECRET}
-      CONFLUENT_METRICS_REPORTER_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/truststore.p12
-      CONFLUENT_METRICS_REPORTER_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
 
       EXTRA_ARGS: "-javaagent:/usr/bin/jmx/jmx_prometheus_javaagent.jar=1234:/usr/bin/jmx/exporter.yml"
       KAFKA_HEAP_OPTS: "-Xms${BROKER_HEAP} -Xmx${BROKER_HEAP}"
@@ -348,6 +414,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./kafka/schema-registry1/certs:/tmp/certs
+      - ./kafka/keypair:/tmp/conf
       - ./kafka/certs:/tmp/kafka/certs
       - ./kafka/bin/confluent:/usr/bin/confluent
       - ./kafka/configs:/etc/confluent/configs
@@ -385,6 +452,7 @@ services:
 
       # Encryption
       SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL: https
+      SCHEMA_REGISTRY_SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL: "https"
       SCHEMA_REGISTRY_SSL_CLIENT_AUTHENTICATION: "REQUIRED"
       SCHEMA_REGISTRY_SSL_TRUSTSTORE_LOCATION: /tmp/certs/truststore.p12
       SCHEMA_REGISTRY_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
@@ -398,7 +466,7 @@ services:
       SCHEMA_REGISTRY_CONFLUENT.SCHEMA.REGISTRY.AUTHORIZER.CLASS: io.confluent.kafka.schemaregistry.security.authorizer.rbac.RbacAuthorizer
       SCHEMA_REGISTRY_REST_SERVLET_INITIALIZOR_CLASSES: io.confluent.common.security.jetty.initializer.AuthenticationHandler
       SCHEMA_REGISTRY_CONFLUENT.SCHEMA.REGISTRY.AUTH.MECHANISM: JETTY_AUTH
-      SCHEMA_REGISTRY_PUBLIC_KEY_PATH: /tmp/certs/cert.pem
+      SCHEMA_REGISTRY_PUBLIC_KEY_PATH: /tmp/conf/public.pem
       SCHEMA_REGISTRY_PASSWORD_ENCODER_SECRET: random
 
       # Authorization through mds
