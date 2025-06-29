@@ -12,8 +12,8 @@ update_cli_permissions() {
 
 create_client_files() {
   echo "Creating client files"
-  cat ../templates/superuser.template | envsubst > ../kafka/configs/superuser.properties
-  cat ../templates/client.template | envsubst > ../kafka/configs/client.properties
+  cat ../templates/superuser1.template | envsubst > ../kafka/configs/superuser.properties
+  cat ../templates/client1.template | envsubst > ../kafka/configs/client.properties
 }
 
 create_env_file() {
