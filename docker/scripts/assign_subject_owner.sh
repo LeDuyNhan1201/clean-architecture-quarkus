@@ -8,7 +8,7 @@ SUBJECT_NAME="$1"
 auth_token=$(curl -s -d "client_id=$SUPERUSER_CLIENT_ID" \
                   -d "client_secret=$SUPERUSER_CLIENT_SECRET" \
                   -d "grant_type=client_credentials" \
-                  "$IDP_TOKEN_ENDPOINT" | \
+                  --insecure "$IDP_TOKEN_ENDPOINT" | \
              grep -Po '"access_token": *\K"[^"]*"' | grep -o '[^"]*')
 
 echo "Access Token: $auth_token"
@@ -16,7 +16,7 @@ echo "Access Token: $auth_token"
 MDS_RBAC_ENDPOINT=https://broker1:8091/security/1.0/principals
 
 # Gán quyền ResourceOwner cho topic
-curl -X POST "$MDS_RBAC_ENDPOINT/User:$CLIENT_APP_ID/roles/ResourceOwner/bindings" \
+curl -X --insecure POST "$MDS_RBAC_ENDPOINT/User:$CLIENT_APP_ID/roles/ResourceOwner/bindings" \
   -H "Authorization: Bearer $auth_token" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
@@ -24,7 +24,7 @@ curl -X POST "$MDS_RBAC_ENDPOINT/User:$CLIENT_APP_ID/roles/ResourceOwner/binding
     \"scope\": {
       \"clusters\": {
         \"kafka-cluster\": \"vHCgQyIrRHG8Jv27qI2h3Q\",
-        \"schema-registry-cluster\": \schema-registry-cluster\"
+        \"schema-registry-cluster\": \"schema-registry-cluster\"
       }
     },
     \"resourcePatterns\": [

@@ -4,5 +4,7 @@ dependencies {
     api rootProject.ext.libs.quarkusOidc
     api rootProject.ext.libs.keycloakAuthorization
     api rootProject.ext.libs.keycloakAdmin
-    implementation rootProject.ext.libs.quarkusJackson
+    api rootProject.ext.libs.messagingKafka
+    api rootProject.ext.libs.kafkaOauthClient
+    api rootProject.ext.libs.kafkaOauthCommon
 }

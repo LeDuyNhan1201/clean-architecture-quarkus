@@ -1,7 +1,11 @@
 sasl.mechanism=OAUTHBEARER
-security.protocol=SASL_PLAINTEXT
+security.protocol=SASL_SSL
 sasl.login.callback.handler.class=org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerLoginCallbackHandler
 sasl.oauthbearer.token.endpoint.url=$IDP_TOKEN_ENDPOINT
 sasl.jaas.config=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
       clientId="$SUPERUSER_CLIENT_ID" \
-      clientSecret="$SUPERUSER_CLIENT_SECRET";
+      clientSecret="$SUPERUSER_CLIENT_SECRET" \
+      ssl.truststore.type="PKCS12" \
+      ssl.endpoint.identification.algorithm="https" \
+      ssl.truststore.location="/etc/kafka/secrets/truststore.p12" \
+      ssl.truststore.password="${CERT_SECRET}";

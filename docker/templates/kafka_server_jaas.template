@@ -1,0 +1,17 @@
+KafkaServer {
+  org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required
+    oauth.client.id="${SUPERUSER_CLIENT_ID}"
+    oauth.client.secret="${SUPERUSER_CLIENT_SECRET}"
+    oauth.token.endpoint.uri="${IDP_TOKEN_ENDPOINT}"
+    principalClaimName="sub"
+    refresh_ms="3000"
+    ssl.endpoint.identification.algorithm="https"
+    ssl.keystore.type="PKCS12"
+    ssl.keystore.location="/etc/kafka/secrets/keystore.p12"
+    ssl.keystore.password="${CERT_SECRET}"
+    ssl.key.password="${CERT_SECRET}"
+    ssl.truststore.type="PKCS12"
+    ssl.endpoint.identification.algorithm="https"
+    ssl.truststore.location="/etc/kafka/secrets/truststore.p12"
+    ssl.truststore.password="${CERT_SECRET}";
+};

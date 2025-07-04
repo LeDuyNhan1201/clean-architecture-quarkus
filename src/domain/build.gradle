@@ -1,4 +1,5 @@
 dependencies {
     api rootProject.ext.libs.reactivePanache
+    api rootProject.ext.libs.validation
     implementation rootProject.ext.libs.postgresDriver
 }

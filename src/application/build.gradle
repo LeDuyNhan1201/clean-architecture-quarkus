@@ -1,4 +1,4 @@
 dependencies {
-    implementation project(':domain')
-    implementation project(':common')
+    api project(':contract')
+    implementation rootProject.ext.libs.dataFaker
 }

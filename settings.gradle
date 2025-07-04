@@ -11,8 +11,8 @@ pluginManagement {
 
 rootProject.name = 'clean-architecture-quarkus'
 
-include 'common'
-project(':common').projectDir = file('src/common')
+include 'contract'
+project(':contract').projectDir = file('src/contract')
 
 include 'adapter'
 project(':adapter').projectDir = file('src/adapter')

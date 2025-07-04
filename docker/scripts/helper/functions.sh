@@ -12,14 +12,15 @@ update_cli_permissions() {
 
 create_client_files() {
   echo "Creating client files"
-  cat ../templates/superuser1.template | envsubst > ../kafka/configs/superuser.properties
-  cat ../templates/client1.template | envsubst > ../kafka/configs/client.properties
+  cat ../templates/superuser.template | envsubst > ../kafka/configs/superuser.properties
+  cat ../templates/client.template | envsubst > ../kafka/configs/client.properties
+  cat ../templates/kafka_server_jaas.template | envsubst > ../kafka/configs/kafka_server_jaas.conf
 }
 
 create_env_file() {
     # Xóa nội dung file trước khi ghi
     : > ../.env
-    : > ../kafka/broker1/certs/creds
+    : > ../kafka/broker1/creds.txt
 
     echo POSTGRES_USER=$POSTGRES_USER >> ../.env
     echo POSTGRES_PASSWORD=$POSTGRES_PASSWORD >> ../.env
@@ -35,6 +36,8 @@ create_env_file() {
     echo SUB_CLAIM_NAME=$SUB_CLAIM_NAME >> ../.env
     echo GROUP_CLAIM_NAME=$GROUP_CLAIM_NAME >> ../.env
     echo EXPECTED_AUDIENCE=$EXPECTED_AUDIENCE >> ../.env
+
+    echo CLIENT_TRUSTSTORE_LOCATION=$CLIENT_TRUSTSTORE_LOCATION >> ../.env
 
     # Client configurations
     echo APP_GROUP_NAME=$APP_GROUP_NAME >> ../.env
@@ -70,7 +73,7 @@ create_env_file() {
     echo KSQL_CLIENT_SECRET=$KSQL_CLIENT_SECRET >> ../.env
 
     echo CERT_SECRET=$CERT_SECRET >> ../.env
-    echo $CERT_SECRET >> ../kafka/broker1/certs/creds
+    echo $CERT_SECRET >> ../kafka/broker1/creds.txt
 
     echo BROKER_HEAP=$BROKER_HEAP >> ../.env
     echo SCHEMA_HEAP=$SCHEMA_HEAP >> ../.env

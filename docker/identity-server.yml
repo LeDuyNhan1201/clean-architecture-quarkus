@@ -1,10 +1,11 @@
 services:
   # --------- Postgres ---------
   postgres:
-    build:
-      context: ./postgres
-      args:
-        POSTGRES_DOCKER_TAG: ${POSTGRES_DOCKER_TAG:-latest}
+    #    build:
+    #      context: ./postgres
+    #      args:
+    #        POSTGRES_DOCKER_TAG: ${POSTGRES_DOCKER_TAG:-latest}
+    image: postgres:${POSTGRES_DOCKER_TAG:-latest}
     container_name: postgres
     ports:
       - "5432:5432"
@@ -26,7 +27,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
   quarkus_certgen:
-    build: ./certs
+    build: ./
     container_name: quarkus_certgen
     networks:
       - my-network
@@ -41,7 +42,7 @@ services:
       - CERT_PASSWORD=${CERT_SECRET}
 
   keycloak_certgen:
-    build: ./certs
+    build: ./
     container_name: keycloak_certgen
     networks:
       - my-network
@@ -58,25 +59,43 @@ services:
   # --------- Keycloak ---------
   keycloak:
     image: quay.io/keycloak/keycloak:${KEYCLOAK_DOCKER_TAG:-latest}
+    #    build:
+    #      context: ./keycloak
+    #      args:
+    #        KEYCLOAK_DOCKER_TAG: ${KEYCLOAK_DOCKER_TAG:-latest}
     container_name: keycloak
     depends_on:
       postgres:
         condition: service_healthy
+      keycloak_certgen:
+        condition: service_completed_successfully
     ports:
-      - "8080:8080"
-      - "9990:9990"
+      - "8443:8443" # HTTPS
+      - "9990:9990" # Management port
     networks:
       - my-network
-    command: [ "start-dev", "--health-enabled=true", "--import-realm" ]
+    command: [
+      "start",
+      "--https-certificate-file=/opt/keycloak/conf/cert.pem",
+      "--https-certificate-key-file=/opt/keycloak/conf/key.pem",
+      "--http-enabled=false",
+      "--https-port=8443",
+      "--hostname-strict=false",
+      "--health-enabled=true",
+      "--import-realm"
+    ]
     healthcheck:
       test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9990; echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost:9990\r\nConnection: close\r\n\r\n' >&3; cat <&3 | grep -q '\"status\": \"UP\"' && exit 0 || exit 1" ]
       interval: 30s
       timeout: 10s
       start_period: 30s
       retries: 3
-    restart: unless-stopped
+    restart: always
     volumes:
-      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/import-realms.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/certs/cert.pem:/opt/keycloak/conf/cert.pem:ro
+      - ./keycloak/certs/key.pem:/opt/keycloak/conf/key.pem:ro
+      - ./keycloak/exports:/opt/keycloak/data/export
     environment:
       KC_HTTP_MANAGEMENT_PORT: 9990
       KC_METRICS_ENABLED: true
@@ -91,62 +110,11 @@ services:
       KC_DB_URL_DATABASE: keycloak
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
-#  keycloak:
-#    image: quay.io/keycloak/keycloak:${KEYCLOAK_DOCKER_TAG:-latest}
-#    #    build:
-#    #      context: ./keycloak
-#    #      args:
-#    #        KEYCLOAK_DOCKER_TAG: ${KEYCLOAK_DOCKER_TAG:-latest}
-#    container_name: keycloak
-#    depends_on:
-#      postgres:
-#        condition: service_healthy
-#      keycloak_certgen:
-#        condition: service_completed_successfully
-#    ports:
-#      - "8443:8443" # HTTPS
-#      - "9990:9990" # Management port
-#    networks:
-#      - my-network
-#    command: [
-#      "start",
-#      "--https-certificate-file=/opt/keycloak/conf/cert.pem",
-#      "--https-certificate-key-file=/opt/keycloak/conf/key.pem",
-#      "--http-enabled=false",
-#      "--https-port=8443",
-#      "--hostname-strict=false",
-#      "--health-enabled=true",
-#      "--import-realm"
-#    ]
-##    healthcheck:
-##      test: [
-##        "CMD-SHELL",
-##        "echo -ne 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' | openssl s_client -connect 127.0.0.1:9990 -ign_eof"
-##      ]
-##      interval: 30s
-##      timeout: 20s
-##      start_period: 30s
-##      retries: 3
-#    restart: always
-#    volumes:
-#      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
-#      - ./keycloak/certs:/opt/keycloak/conf:ro
-#      - ./keycloak/export:/opt/keycloak/data/export
-#    environment:
-#      KC_HTTP_MANAGEMENT_PORT: 9990
-#      KC_METRICS_ENABLED: true
-#      KC_HEALTH_ENABLED: true
-#      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
-#      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
-#      KC_PROXY: edge
-#      KEYCLOAK_IMPORT: /opt/keycloak/data/import/realm-export.json
-#      KC_DB: postgres
-#      KC_DB_URL_HOST: postgres
-#      KC_DB_URL_PORT: 5432
-#      KC_DB_URL_DATABASE: keycloak
-#      KC_DB_USERNAME: ${POSTGRES_USER}
-#      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
 
 volumes:
   postgres-data:
     driver: local
+
+networks:
+  my-network:
+    driver: bridge
