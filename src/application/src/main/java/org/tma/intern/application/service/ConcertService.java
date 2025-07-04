@@ -1,5 +1,6 @@
 package org.tma.intern.application.service;
 
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import org.tma.intern.contract.RequestDto.ConcertRequest;
 import org.tma.intern.contract.ResponseDto.ConcertResponse;
@@ -17,6 +18,6 @@ public interface ConcertService {
 
     Uni<PageResponse<ConcertResponse.Preview>> findAll(int page, int limit);
 
-    Uni<Integer> seedData(int count);
+    Multi<Long> seedData(int count);
 
 }

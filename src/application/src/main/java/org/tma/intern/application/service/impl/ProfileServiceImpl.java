@@ -11,8 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
-import org.tma.intern.application.Error;
-import org.tma.intern.application.HttpException;
+import org.tma.intern.application.exception.Error;
+import org.tma.intern.application.exception.HttpException;
 import org.tma.intern.application.injection.IdentityProviderClient;
 import org.tma.intern.application.service.ProfileService;
 import org.tma.intern.contract.RequestDto.ProfileRequest;
@@ -26,6 +26,7 @@ import org.tma.intern.domain.repository.ProfileRepository;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -39,57 +40,58 @@ public class ProfileServiceImpl implements ProfileService {
 
     ProfileMapper profileMapper;
 
-    Faker faker = new Faker();
+    Faker faker;
 
-    @WithTransaction
+//    @WithTransaction
     @Override
-    public Uni<Integer> seedData(int count) {
-        return Multi.createFrom().range(0, count)
-            .onItem().transform(index -> createRandomProfile())
-            .onItem().transformToUniAndConcatenate(profileRepository::persist)
-            .collect().asList().map(List::size);
+    public Multi<Long> seedData(int count) {
+        List<Profile> profiles = IntStream.range(0, count)
+                .mapToObj(i -> createRandomProfile("1")).toList();
+        return profileRepository.persist(profiles).replaceWith(profiles)
+                .onItem().transformToMulti(list ->
+                        Multi.createFrom().items(list.stream().map(Profile::getId)));
     }
 
-    private Profile createRandomProfile() {
+    private Profile createRandomProfile(String userId) {
         return Profile.builder()
-            .gender(FakerHelper.randomEnum(Gender.class))
-            .userId(FakerHelper.randomElement(keycloakClient.getUserIds(10)))
-            .dayOfBirth(Date.from(faker.timeAndDate().birthday().atStartOfDay(ZoneId.systemDefault()).toInstant()))
-            .build();
+                .gender(FakerHelper.randomEnum(Gender.class))
+                .userId(userId)
+                .dayOfBirth(Date.from(faker.timeAndDate().birthday().atStartOfDay(ZoneId.systemDefault()).toInstant()))
+                .build();
     }
 
     @WithTransaction
     @Override
     public Uni<Long> create(Profile entity) {
         return profileRepository.persist(entity)
-            .onItem().transform(Profile::getId)
-            .onFailure().transform(throwable ->
-                new HttpException(Error.ACTION_FAILED, throwable,
-                    Response.Status.NOT_IMPLEMENTED, "Create", "profile"));
+                .onItem().transform(Profile::getId)
+                .onFailure().transform(throwable ->
+                        new HttpException(Error.ACTION_FAILED, throwable,
+                                Response.Status.NOT_IMPLEMENTED, "Create", "profile"));
     }
 
     @WithTransaction
     @Override
     public Uni<Long> update(Long id, ProfileRequest.Update body) {
         return findById(id)
-            .onItem().ifNotNull().transformToUni(profile ->
-                profileRepository.persist(Profile.builder()
-                        .id(id)
-                        .gender(body.gender())
-                        .dayOfBirth(body.dayOfBirth()).build())
-                    .onItem().transform(Profile::getId)
-                    .onFailure().transform(throwable ->
-                        new HttpException(Error.ACTION_FAILED, throwable,
-                            Response.Status.NOT_IMPLEMENTED, "Update", "profile")));
+                .onItem().ifNotNull().transformToUni(profile ->
+                        profileRepository.persist(Profile.builder()
+                                        .id(id)
+                                        .gender(body.gender())
+                                        .dayOfBirth(body.dayOfBirth()).build())
+                                .onItem().transform(Profile::getId)
+                                .onFailure().transform(throwable ->
+                                        new HttpException(Error.ACTION_FAILED, throwable,
+                                                Response.Status.NOT_IMPLEMENTED, "Update", "profile")));
     }
 
     @WithSession
     @Override
     public Uni<ProfileResponse.PreviewProfile> findById(Long id) {
         return profileRepository.findById(id)
-            .onItem().ifNull().failWith(() ->
-                new HttpException(Error.RESOURCE_NOT_FOUND, null, Response.Status.NOT_IMPLEMENTED, "Profile"))
-            .onItem().ifNotNull().transform(profileMapper::toDto);
+                .onItem().ifNull().failWith(() ->
+                        new HttpException(Error.RESOURCE_NOT_FOUND, null, Response.Status.NOT_IMPLEMENTED, "Profile"))
+                .onItem().ifNotNull().transform(profileMapper::toDto);
     }
 
 }

@@ -1,4 +1,4 @@
-package org.tma.intern.application;
+package org.tma.intern.application.exception;
 
 import jakarta.ws.rs.core.Response;
 import lombok.AccessLevel;

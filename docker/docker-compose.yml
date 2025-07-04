@@ -92,7 +92,7 @@ services:
       retries: 3
     restart: always
     volumes:
-      - ./keycloak/import-realms.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/realms-import.json:/opt/keycloak/data/import/realms-import.json
       - ./keycloak/certs/cert.pem:/opt/keycloak/conf/cert.pem:ro
       - ./keycloak/certs/key.pem:/opt/keycloak/conf/key.pem:ro
       - ./keycloak/exports:/opt/keycloak/data/export
@@ -103,7 +103,7 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
       KC_PROXY: edge
-      KEYCLOAK_IMPORT: /opt/keycloak/data/import/realm-export.json
+      KEYCLOAK_IMPORT: /opt/keycloak/data/import/realms-import.json
       KC_DB: postgres
       KC_DB_URL_HOST: postgres
       KC_DB_URL_PORT: 5432

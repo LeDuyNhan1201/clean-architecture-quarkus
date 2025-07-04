@@ -1,6 +1,5 @@
 package org.tma.intern.adapter.api;
 
-import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -11,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.tma.intern.application.injection.IdentityProviderClient;
 import org.tma.intern.contract.RequestDto.ProfileRequest;
+import org.tma.intern.contract.ResponseDto.CommonResponse;
 
 import java.util.List;
 
@@ -31,14 +31,14 @@ public class TestResource extends BaseResource {
                 .build());
     }
 
-    @Blocking
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     @Path("roles")
-    public RestResponse<List<String>> getRoles() {
-        return RestResponse.ResponseBuilder
-                .ok(keycloakClient.getRoles(), MediaType.APPLICATION_JSON)
-                .build();
+    public Uni<RestResponse<CommonResponse<List<String>>>> getRoles() {
+        return keycloakClient.getRoles()
+                .collect().asList()
+                .map(roles ->
+                        RestResponse.ok(CommonResponse.<List<String>>builder().data(roles).build()));
     }
 
     @Produces(MediaType.APPLICATION_JSON)

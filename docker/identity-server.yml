@@ -85,14 +85,15 @@ services:
       "--import-realm"
     ]
     healthcheck:
-      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9990; echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost:9990\r\nConnection: close\r\n\r\n' >&3; cat <&3 | grep -q '\"status\": \"UP\"' && exit 0 || exit 1" ]
+#      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9990; echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost:9990\r\nConnection: close\r\n\r\n' >&3; cat <&3 | grep -q '\"status\": \"UP\"' && exit 0 || exit 1" ]
+      test: ["CMD", "nc", "-z", "keycloak", "9990"]
       interval: 30s
       timeout: 10s
       start_period: 30s
       retries: 3
     restart: always
     volumes:
-      - ./keycloak/import-realms.json:/opt/keycloak/data/import/realm-export.json
+      - ./keycloak/realms-import.json:/opt/keycloak/data/import/realms-import.json
       - ./keycloak/certs/cert.pem:/opt/keycloak/conf/cert.pem:ro
       - ./keycloak/certs/key.pem:/opt/keycloak/conf/key.pem:ro
       - ./keycloak/exports:/opt/keycloak/data/export
@@ -103,7 +104,7 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
       KC_PROXY: edge
-      KEYCLOAK_IMPORT: /opt/keycloak/data/import/realm-export.json
+      KEYCLOAK_IMPORT: /opt/keycloak/data/import/realms-import.json
       KC_DB: postgres
       KC_DB_URL_HOST: postgres
       KC_DB_URL_PORT: 5432

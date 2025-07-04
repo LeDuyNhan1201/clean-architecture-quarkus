@@ -2,6 +2,7 @@ package org.tma.intern.adapter.api.v1;
 
 import io.quarkus.security.Authenticated;
 import io.smallrye.common.annotation.Blocking;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -60,7 +61,7 @@ public class UsersResource extends BaseResource {
         content = @Content(schema = @Schema(implementation = String.class)))
     @APIResponse(responseCode = "200", description = "Success",
         content = @Content(schema = @Schema(implementation = Integer.class)))
-    public RestResponse<Long> seedUsers(int count) {
+    public RestResponse<Multi<String>> seedUsers(int count) {
         return RestResponse.ResponseBuilder.ok(userService.seedUsers(count), MediaType.APPLICATION_JSON).build();
     }
 

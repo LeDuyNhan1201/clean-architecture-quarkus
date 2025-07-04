@@ -1,5 +1,6 @@
 package org.tma.intern.application.injection;
 
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import org.tma.intern.domain.entity.IdentityUser;
 
@@ -8,16 +9,16 @@ import java.util.Map;
 
 public interface IdentityProviderClient {
 
-    List<String> getRoles();
+    Multi<String> getRoles();
 
-    List<String> getUserIds(int count);
+    Multi<String> getUserIds(int count);
 
-    String create(IdentityUser entity, String... roles);
+    Uni<String> create(IdentityUser entity, String... roles);
 
-    String delete(String id);
+    Uni<String> delete(String id);
 
     Uni<Map<String, String>> getTokens(String username, String password);
 
-    boolean createUsers(List<IdentityUser> entities, String... roles);
+    Multi<String> createUsers(List<IdentityUser> entities, String... roles);
 
 }

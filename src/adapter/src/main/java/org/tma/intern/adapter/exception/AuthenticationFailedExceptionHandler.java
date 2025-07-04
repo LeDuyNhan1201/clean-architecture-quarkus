@@ -6,7 +6,7 @@ import jakarta.enterprise.event.Observes;
 
 import io.quarkus.security.AuthenticationFailedException;
 import io.vertx.ext.web.Router;
-import org.tma.intern.application.Error;
+import org.tma.intern.application.exception.Error;
 
 @ApplicationScoped
 public class AuthenticationFailedExceptionHandler {

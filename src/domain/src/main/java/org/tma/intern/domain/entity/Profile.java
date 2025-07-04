@@ -24,7 +24,8 @@ public class Profile extends AuditEntity<Long> {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false, length = 100)
-    Gender gender;
+    @Builder.Default
+    Gender gender = Gender.OTHER;
 
     @Temporal(TemporalType.DATE)
     @Column(name = "day_of_birth")
