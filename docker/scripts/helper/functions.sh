@@ -20,7 +20,7 @@ create_client_files() {
 create_env_file() {
     # Xóa nội dung file trước khi ghi
     : > ../.env
-    : > ../kafka/broker1/creds.txt
+    : > ../kafka/creds.txt
 
     echo POSTGRES_USER=$POSTGRES_USER >> ../.env
     echo POSTGRES_PASSWORD=$POSTGRES_PASSWORD >> ../.env
@@ -73,7 +73,7 @@ create_env_file() {
     echo KSQL_CLIENT_SECRET=$KSQL_CLIENT_SECRET >> ../.env
 
     echo CERT_SECRET=$CERT_SECRET >> ../.env
-    echo $CERT_SECRET >> ../kafka/broker1/creds.txt
+    echo $CERT_SECRET >> ../kafka/creds.txt
 
     echo BROKER_HEAP=$BROKER_HEAP >> ../.env
     echo SCHEMA_HEAP=$SCHEMA_HEAP >> ../.env

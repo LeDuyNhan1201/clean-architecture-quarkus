@@ -35,8 +35,8 @@ services:
 #        CONFLUENT_DOCKER_TAG: ${CONFLUENT_DOCKER_TAG:-latest}
     container_name: broker1
     depends_on:
-#      keycloak:
-#        condition: service_started
+      wait-for-keycloak:
+        condition: service_completed_successfully
       broker1_certgen:
         condition: service_completed_successfully
       keypairgen:

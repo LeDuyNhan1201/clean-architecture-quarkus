@@ -79,10 +79,10 @@ openssl verify -CAfile ca1.pem ca2.pem
 ```
 
 ```shell
-auth_token=$(curl -s -d "client_id=superuser_client_app" \
-                  -d "client_secret=superuser_client_app_secret" \
+auth_token=$(curl -s -d "client_id=kafka" \
+                  -d "client_secret=8bNftAs6uLqtcamZZltk1IrGnjMxvl9k" \
                   -d "grant_type=client_credentials" \
-                  --insecure "https://keycloak:8443/realms/cp/protocol/openid-connect/token" | \
+                  --insecure "https://keycloak:8443/realms/kafka/protocol/openid-connect/token" | \
              grep -Po '"access_token": *\K"[^"]*"' | grep -o '[^"]*')
 
 echo "Access Token: $auth_token"

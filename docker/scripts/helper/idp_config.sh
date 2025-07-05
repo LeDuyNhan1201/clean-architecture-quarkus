@@ -26,22 +26,22 @@ export KC_BOOTSTRAP_ADMIN_USERNAME=ldnhan
 export KC_BOOTSTRAP_ADMIN_PASSWORD=123
 
 export SUPERUSER_CLIENT_ID=kafka
-export SUPERUSER_CLIENT_SECRET=8bNftAs6uLqtcamZZltk1IrGnjMxvl9k
+export SUPERUSER_CLIENT_SECRET=kafka-secret
 
 export SR_CLIENT_ID=schema-registry
-export SR_CLIENT_SECRET=wNS3Orf1lKIrG4TT7UtIMuZN35QEZTsp
+export SR_CLIENT_SECRET=schema-registry-secret
 
 export RP_CLIENT_ID=rest-proxy
-export RP_CLIENT_SECRET=ME3PYgSWOixmGePXMyhLGmMEdadKn4fw
+export RP_CLIENT_SECRET=rest-proxy-secret
 
 export C3_CLIENT_ID=control-center
-export C3_CLIENT_SECRET=MGv7Z8YXOUy7fuL9OsgQtdD0tifKnzER
+export C3_CLIENT_SECRET=control-center-secret
 
 export CLIENT_APP_ID=quarkus
-export CLIENT_APP_SECRET=8tBDVl95C8OKc2TSzxHExIMlTb9gK1DZ
+export CLIENT_APP_SECRET=quarkus-secret
 
 export SSO_CLIENT_ID=control-center-sso
-export SSO_CLIENT_SECRET=dnZrt3xtnmS8Abn1QY4SkME3WqmZOpMi
+export SSO_CLIENT_SECRET=control-center-sso-secret
 
 export SSO_SUPER_USER_GROUP=sso-users
 export SSO_USER_GROUP=users

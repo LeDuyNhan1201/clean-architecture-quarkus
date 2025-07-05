@@ -59,10 +59,10 @@ services:
   # --------- Keycloak ---------
   keycloak:
     image: quay.io/keycloak/keycloak:${KEYCLOAK_DOCKER_TAG:-latest}
-    #    build:
-    #      context: ./keycloak
-    #      args:
-    #        KEYCLOAK_DOCKER_TAG: ${KEYCLOAK_DOCKER_TAG:-latest}
+#    build:
+#      context: ./keycloak
+#      args:
+#        KEYCLOAK_DOCKER_TAG: ${KEYCLOAK_DOCKER_TAG:-latest}
     container_name: keycloak
     depends_on:
       postgres:
@@ -84,13 +84,12 @@ services:
       "--health-enabled=true",
       "--import-realm"
     ]
-    healthcheck:
+#    healthcheck:
 #      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9990; echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost:9990\r\nConnection: close\r\n\r\n' >&3; cat <&3 | grep -q '\"status\": \"UP\"' && exit 0 || exit 1" ]
-      test: ["CMD", "nc", "-z", "keycloak", "9990"]
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
+#      interval: 30s
+#      timeout: 10s
+#      start_period: 30s
+#      retries: 3
     restart: always
     volumes:
       - ./keycloak/realms-import.json:/opt/keycloak/data/import/realms-import.json
@@ -111,6 +110,28 @@ services:
       KC_DB_URL_DATABASE: keycloak
       KC_DB_USERNAME: ${POSTGRES_USER}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+  wait-for-keycloak:
+    image: curlimages/curl
+    container_name: wait-for-keycloak
+    depends_on:
+      - keycloak
+    networks:
+      - my-network
+    command: >
+      sh -c '
+        i=0;
+        until curl -kfs https://keycloak:9990/health/ready; do
+          echo "Waiting for Keycloak...";
+          sleep 2;
+          i=$$((i+1));
+          if [ $$i -ge 30 ]; then
+            echo "❌ Timeout: Keycloak not ready after 60s.";
+            exit 1;
+          fi;
+        done;
+        echo "✅ Keycloak is ready!"
+      '
 
 volumes:
   postgres-data:
