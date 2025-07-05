@@ -1,16 +1,23 @@
 # IDP configurations
-export IDP_TOKEN_ENDPOINT=https://keycloak:8443/realms/cp/protocol/openid-connect/token
-export IDP_JWKS_ENDPOINT=https://keycloak:8443/realms/cp/protocol/openid-connect/certs
-export IDP_EXPECTED_ISSUER=https://keycloak:8443/realms/cp
-export IDP_AUTH_ENDPOINT=https://keycloak:8443/realms/cp/protocol/openid-connect/auth
-export IDP_DEVICE_AUTH_ENDPOINT=https://keycloak:8443/realms/cp/protocol/openid-connect/auth/device
+export IDP_TOKEN_ENDPOINT=https://keycloak:8443/realms/kafka/protocol/openid-connect/token
+export IDP_JWKS_ENDPOINT=https://keycloak:8443/realms/kafka/protocol/openid-connect/certs
+export IDP_EXPECTED_ISSUER=https://keycloak:8443/realms/kafka
+export IDP_AUTH_ENDPOINT=https://keycloak:8443/realms/kafka/protocol/openid-connect/auth
+export IDP_DEVICE_AUTH_ENDPOINT=https://keycloak:8443/realms/kafka/protocol/openid-connect/auth/device
 export SUB_CLAIM_NAME=sub
 export GROUP_CLAIM_NAME=groups
 export EXPECTED_AUDIENCE=account
+
 export CLIENT_TRUSTSTORE_LOCATION=/tmp/client/secrets
+export CLIENT_KEYSTORE_LOCATION=/tmp/client/secrets
+export CERT_SECRET=120103
+
+export BROKER_HEAP=1G
+export SCHEMA_HEAP=512M
+export SSL_CIPHER_SUITES=TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 
 # Client configurations
-export APP_GROUP_NAME='/app_group1'
+export APP_GROUP_NAME='clients'
 
 export POSTGRES_USER=ldnhan
 export POSTGRES_PASSWORD=123
@@ -18,14 +25,26 @@ export POSTGRES_PASSWORD=123
 export KC_BOOTSTRAP_ADMIN_USERNAME=ldnhan
 export KC_BOOTSTRAP_ADMIN_PASSWORD=123
 
-export SUPERUSER_CLIENT_ID=superuser_client_app
-export SUPERUSER_CLIENT_SECRET=superuser_client_app_secret
+export SUPERUSER_CLIENT_ID=kafka
+export SUPERUSER_CLIENT_SECRET=8bNftAs6uLqtcamZZltk1IrGnjMxvl9k
 
-export SR_CLIENT_ID=sr_client_app
-export SR_CLIENT_SECRET=sr_client_app_secret
+export SR_CLIENT_ID=schema-registry
+export SR_CLIENT_SECRET=wNS3Orf1lKIrG4TT7UtIMuZN35QEZTsp
 
-export RP_CLIENT_ID=rp_client_app
-export RP_CLIENT_SECRET=rp_client_app_secret
+export RP_CLIENT_ID=rest-proxy
+export RP_CLIENT_SECRET=ME3PYgSWOixmGePXMyhLGmMEdadKn4fw
+
+export C3_CLIENT_ID=control-center
+export C3_CLIENT_SECRET=MGv7Z8YXOUy7fuL9OsgQtdD0tifKnzER
+
+export CLIENT_APP_ID=quarkus
+export CLIENT_APP_SECRET=8tBDVl95C8OKc2TSzxHExIMlTb9gK1DZ
+
+export SSO_CLIENT_ID=control-center-sso
+export SSO_CLIENT_SECRET=dnZrt3xtnmS8Abn1QY4SkME3WqmZOpMi
+
+export SSO_SUPER_USER_GROUP=sso-users
+export SSO_USER_GROUP=users
 
 export CONNECT_CLIENT_ID=connect_client_app
 export CONNECT_CLIENT_SECRET=connect_client_app_secret
@@ -35,23 +54,4 @@ export CONNECT_SECRET_PROTECTION_CLIENT_SECRET=connect_sr_client_app_secret
 
 export KSQL_CLIENT_ID=ksql_client_app
 export KSQL_CLIENT_SECRET=ksql_client_app_secret
-
-export C3_CLIENT_ID=c3_client_app
-export C3_CLIENT_SECRET=c3_client_app_secret
-
-export CLIENT_APP_ID=client_app1
-export CLIENT_APP_SECRET=client_app1_secret
-
-export SSO_CLIENT_ID=c3_sso_login
-export SSO_CLIENT_SECRET=c3_sso_login_secret
-
-export SSO_SUPER_USER_GROUP=g1
-export SSO_USER_GROUP=g2
-
-export CERT_SECRET=120103
-
-export BROKER_HEAP=1G
-export SCHEMA_HEAP=512M
-
-export SSL_CIPHER_SUITES=TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 

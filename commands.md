@@ -17,7 +17,7 @@ docker stop postgres
 docker rm -f -v postgres
 
 docker exec -it keycloak /bin/bash 
-/opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data/export --realm quarkus --users realm_file
+/opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data/export --realm kafka --users realm_file
 
 docker inspect broker1 | jq '.[0].State.Health.Log[] | {ExitCode, Output}'
 ```

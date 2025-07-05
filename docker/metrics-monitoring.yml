@@ -18,13 +18,14 @@ services:
     networks:
       - my-network
     command: [ "--config=/etc/otelcol-config.yml", "--feature-gates=pkg.translator.prometheus.NormalizeName"]
-#    healthcheck:
+    healthcheck:
 #      test: >
 #        sh -c 'curl --silent --insecure -o /dev/null -w "%{http_code}" http://otel-collector:4318/v1/metrics | grep -E "^(200|405)$" > /dev/null'
-#      start_period: 10s
-#      interval: 10s
-#      timeout: 30s
-#      retries: 3
+      test: ["CMD", "nc", "-z", "otel-collector", "4318"]
+      start_period: 10s
+      interval: 10s
+      timeout: 30s
+      retries: 3
     restart: unless-stopped
     volumes:
       - ./otel-collector/otelcol-config.yml:/etc/otelcol-config.yml

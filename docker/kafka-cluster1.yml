@@ -28,11 +28,11 @@ services:
       - CERT_PASSWORD=${CERT_SECRET}
 
   broker1:
-#    image: confluentinc/cp-server:${CONFLUENT_DOCKER_TAG:-latest}
-    build:
-      context: ./kafka
-      args:
-        CONFLUENT_DOCKER_TAG: ${CONFLUENT_DOCKER_TAG:-latest}
+    image: confluentinc/cp-server:${CONFLUENT_DOCKER_TAG:-latest}
+#    build:
+#      context: ./kafka
+#      args:
+#        CONFLUENT_DOCKER_TAG: ${CONFLUENT_DOCKER_TAG:-latest}
     container_name: broker1
     depends_on:
 #      keycloak:
@@ -67,9 +67,9 @@ services:
       - ./kafka/broker1/certs:/etc/kafka/secrets
       - ./kafka/broker1/creds.txt:/etc/kafka/secrets/creds.txt
       - ./kafka/configs:/etc/confluent/configs
-#      - ./kafka/libs/kafka-oauth-common-0.15.1.jar:/usr/share/java/kafka/kafka-oauth-common-0.15.1.jar
-#      - ./kafka/libs/kafka-oauth-server-0.15.1.jar:/usr/share/java/kafka/kafka-oauth-server-0.15.1.jar
-#      - ./kafka/libs/kafka-oauth-client-0.15.1.jar:/usr/share/java/kafka/kafka-oauth-client-0.15.1.jar
+      - ./kafka/libs/kafka-oauth-common-0.15.1.jar:/usr/share/java/kafka/kafka-oauth-common-0.15.1.jar
+      - ./kafka/libs/kafka-oauth-server-0.15.1.jar:/usr/share/java/kafka/kafka-oauth-server-0.15.1.jar
+      - ./kafka/libs/kafka-oauth-client-0.15.1.jar:/usr/share/java/kafka/kafka-oauth-client-0.15.1.jar
       - ./kafka/log4j2.properties:/opt/kafka/config/log4j2.properties:ro
       - ./kafka/bin/confluent:/usr/bin/confluent
       - ./kafka/bin/jmx_prometheus_javaagent.jar:/usr/bin/jmx/jmx_prometheus_javaagent.jar
@@ -79,7 +79,7 @@ services:
       # Basic
       CLUSTER_ID: vHCgQyIrRHG8Jv27qI2h3Q
       KAFKA_BROKER_ID: '1'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:SASL_SSL,SSL:SSL,SSL_HOST:SSL,INTERNAL:SASL_SSL,EXTERNAL:SASL_SSL
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:SSL,SSL:SSL,SSL_HOST:SSL,INTERNAL:SASL_SSL,EXTERNAL:SASL_SSL
       KAFKA_LISTENERS: CONTROLLER://broker1:19091,SSL://broker1:39091,SSL_HOST://0.0.0.0:49091,INTERNAL://broker1:29091,EXTERNAL://broker1:59091
       KAFKA_ADVERTISED_LISTENERS: SSL://broker1:39091,SSL_HOST://localhost:49091,INTERNAL://broker1:29091,EXTERNAL://broker1:59091
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
@@ -98,7 +98,7 @@ services:
 
       # Authentication
       KAFKA_SASL_ENABLED_MECHANISMS: OAUTHBEARER
-      KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL: OAUTHBEARER
+#      KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL: OAUTHBEARER
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: OAUTHBEARER
       KAFKA_SASL_OAUTHBEARER_TOKEN_ENDPOINT_URL: ${IDP_TOKEN_ENDPOINT}
       KAFKA_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: ${IDP_JWKS_ENDPOINT}
@@ -110,10 +110,10 @@ services:
       KAFKA_SASL_LOGIN_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.client.JaasClientOauthLoginCallbackHandler
       KAFKA_SASL_SERVER_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.server.JaasServerOauthValidatorCallbackHandler
       KAFKA_SUPER_USERS: User:admin;User:${SUPERUSER_CLIENT_ID};User:${SSO_CLIENT_ID};User:CN=broker1,OU=Dev,O=TMA,L=HCM,ST=BinhTan,C=VN
-      KAFKA_BROKER_USERS: User:${CLIENT_APP_ID}
+      KAFKA_BROKER_USERS: User:${SUPERUSER_CLIENT_ID}
 
       # Authorizer
-      KAFKA_AUTHORIZER_CLASS_NAME: io.confluent.kafka.security.authorizer.ConfluentServerAuthorizer
+      KAFKA_AUTHORIZER_CLASS_NAME: io.confluent.kafka.security.authorizer.ConfluentServerAuthorizer # kafka.security.authorizer.AclAuthorizer
       KAFKA_CONFLUENT_AUTHORIZER_ACCESS_RULE_PROVIDERS: CONFLUENT,KRAFT_ACL
       KAFKA_CONFLUENT_OPERATOR_MANAGED: 'true'
       KAFKA_CONFLUENT_OAUTH_GROUPS_CLAIM_NAME: ${GROUP_CLAIM_NAME}
@@ -137,6 +137,7 @@ services:
       KAFKA_SSL_TRUSTSTORE_FILENAME: truststore.p12
       KAFKA_SSL_TRUSTSTORE_CREDENTIALS: creds.txt
       KAFKA_SSL_CIPHER_SUITES: ${SSL_CIPHER_SUITES}
+#      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: RULE:^CN=([a-zA-Z0-9]*).*$$/$$1/L,DEFAULT
 
       # Internal Listener
       KAFKA_LISTENER_NAME_INTERNAL_SASL_ENABLED_MECHANISMS: OAUTHBEARER
@@ -176,31 +177,31 @@ services:
       KAFKA_LISTENER_NAME_INTERNAL_SSL_TRUSTSTORE_PASSWORD: ${CERT_SECRET}
 
       # Controller Listener
-      KAFKA_LISTENER_NAME_CONTROLLER_SASL_ENABLED_MECHANISMS: OAUTHBEARER
-      KAFKA_LISTENER_NAME_CONTROLLER_SASL_OAUTHBEARER_TOKEN_ENDPOINT_URL: ${IDP_TOKEN_ENDPOINT}
-      KAFKA_LISTENER_NAME_CONTROLLER_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: ${IDP_JWKS_ENDPOINT}
-      KAFKA_LISTENER_NAME_CONTROLLER_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: ${EXPECTED_AUDIENCE}
-      KAFKA_LISTENER_NAME_CONTROLLER_SASL_OAUTHBEARER_EXPECTED_ISSUER: ${IDP_EXPECTED_ISSUER}
-      KAFKA_LISTENER_NAME_CONTROLLER_SASL_OAUTHBEARER_SUB_CLAIM_NAME: ${SUB_CLAIM_NAME}
-      KAFKA_LISTENER_NAME_CONTROLLER_SASL_OAUTHBEARER_GROUPS_CLAIM_NAME: ${GROUP_CLAIM_NAME}
-      KAFKA_LISTENER_NAME_CONTROLLER_OAUTHBEARER_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
-            oauth.client.id="${SUPERUSER_CLIENT_ID}" \
-            oauth.client.secret="${SUPERUSER_CLIENT_SECRET}" \
-            oauth.token.endpoint.uri="${IDP_TOKEN_ENDPOINT}" \
-            principalClaimName="sub" \
-            refresh_ms="3000" \
-            ssl.endpoint.identification.algorithm="https" \
-            ssl.keystore.type="PKCS12" \
-            ssl.keystore.location="/etc/kafka/secrets/keystore.p12" \
-            ssl.keystore.password="${CERT_SECRET}" \
-            ssl.key.password="${CERT_SECRET}"  \
-            ssl.truststore.type="PKCS12" \
-            ssl.truststore.location="/etc/kafka/secrets/truststore.p12" \
-            ssl.truststore.password="${CERT_SECRET}";
-      KAFKA_LISTENER_NAME_CONTROLLER_PRINCIPAL_BUILDER_CLASS: io.strimzi.kafka.oauth.server.OAuthKafkaPrincipalBuilder
-      KAFKA_LISTENER_NAME_CONTROLLER_OAUTHBEARER_SASL_LOGIN_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.client.JaasClientOauthLoginCallbackHandler
-      KAFKA_LISTENER_NAME_CONTROLLER_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.server.JaasServerOauthValidatorCallbackHandler
+#      KAFKA_LISTENER_NAME_CONTROLLER_SASL_ENABLED_MECHANISMS: OAUTHBEARER
+#      KAFKA_LISTENER_NAME_CONTROLLER_SASL_OAUTHBEARER_TOKEN_ENDPOINT_URL: ${IDP_TOKEN_ENDPOINT}
+#      KAFKA_LISTENER_NAME_CONTROLLER_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: ${IDP_JWKS_ENDPOINT}
+#      KAFKA_LISTENER_NAME_CONTROLLER_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: ${EXPECTED_AUDIENCE}
+#      KAFKA_LISTENER_NAME_CONTROLLER_SASL_OAUTHBEARER_EXPECTED_ISSUER: ${IDP_EXPECTED_ISSUER}
+#      KAFKA_LISTENER_NAME_CONTROLLER_SASL_OAUTHBEARER_SUB_CLAIM_NAME: ${SUB_CLAIM_NAME}
+#      KAFKA_LISTENER_NAME_CONTROLLER_SASL_OAUTHBEARER_GROUPS_CLAIM_NAME: ${GROUP_CLAIM_NAME}
+#      KAFKA_LISTENER_NAME_CONTROLLER_OAUTHBEARER_SASL_JAAS_CONFIG: |
+#        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
+#            oauth.client.id="${SUPERUSER_CLIENT_ID}" \
+#            oauth.client.secret="${SUPERUSER_CLIENT_SECRET}" \
+#            oauth.token.endpoint.uri="${IDP_TOKEN_ENDPOINT}" \
+#            principalClaimName="sub" \
+#            refresh_ms="3000" \
+#            ssl.endpoint.identification.algorithm="https" \
+#            ssl.keystore.type="PKCS12" \
+#            ssl.keystore.location="/etc/kafka/secrets/keystore.p12" \
+#            ssl.keystore.password="${CERT_SECRET}" \
+#            ssl.key.password="${CERT_SECRET}"  \
+#            ssl.truststore.type="PKCS12" \
+#            ssl.truststore.location="/etc/kafka/secrets/truststore.p12" \
+#            ssl.truststore.password="${CERT_SECRET}";
+#      KAFKA_LISTENER_NAME_CONTROLLER_PRINCIPAL_BUILDER_CLASS: io.strimzi.kafka.oauth.server.OAuthKafkaPrincipalBuilder
+#      KAFKA_LISTENER_NAME_CONTROLLER_OAUTHBEARER_SASL_LOGIN_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.client.JaasClientOauthLoginCallbackHandler
+#      KAFKA_LISTENER_NAME_CONTROLLER_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.server.JaasServerOauthValidatorCallbackHandler
 
       KAFKA_LISTENER_NAME_CONTROLLER_SSL_CLIENT_AUTH: 'required'
       KAFKA_LISTENER_NAME_CONTROLLER_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: 'https'
@@ -653,6 +654,116 @@ services:
       SCHEMA_REGISTRY_DEBUG: 'true'
       KAFKA_HEAP_OPTS: "-Xms${SCHEMA_HEAP} -Xmx${SCHEMA_HEAP}"
 
+  # --------- Control Center ---------
+#  control-center:
+#    image: confluentinc/cp-enterprise-control-center:${CONFLUENT_DOCKER_TAG:-latest}
+#    container_name: control-center
+#    depends_on:
+#      broker1:
+#        condition: service_healthy
+#      init_permissions:
+#        condition: service_completed_successfully
+#      prometheus:
+#        condition: service_healthy
+#    ports:
+#      - "9021:9021"
+#      - "9022:9022"
+#      - "1237:1237"
+#    networks:
+#      - my-network
+##    command: >
+##      rm -rf /usr/share/java/confluent-control-center/protobuf-java-util-3.24.4.jar &&
+##      /etc/confluent/docker/launch;
+#    healthcheck:
+#      test: curl --fail --silent http://control-center:9021 --output /dev/null || exit 1
+#      start_period: 10s
+#      interval: 10s
+#      retries: 3
+#    restart: unless-stopped
+#    volumes:
+#      - ./kafka/keypair:/tmp/conf
+#      - ./kafka/configs:/etc/confluent/configs
+#      - ./kafka/bin/opentelemetry-javaagent.jar:/usr/bin/otel/opentelemetry-javaagent.jar
+#      - ./kafka/bin/jmx_prometheus_javaagent.jar:/usr/bin/jmx/jmx_prometheus_javaagent.jar
+#      - ./kafka/metrics/exporter.yml:/usr/bin/jmx/exporter.yml
+#    environment:
+#      CONTROL_CENTER_BOOTSTRAP_SERVERS: EXTERNAL://broker1:9095
+#      CONTROL_CENTER_REPLICATION_FACTOR: 1
+#      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+#      CONTROL_CENTER_LOG4J_ROOT_LOGLEVEL: INFO
+#      CONTROL_CENTER_LOG4J_LOGLEVEL: INFO
+#
+#      CONTROL_CENTER_STREAMS_SECURITY_PROTOCOL: SASL_PLAINTEXT
+#      CONTROL_CENTER_STREAMS_SASL_MECHANISM: OAUTHBEARER
+#      CONTROL_CENTER_STREAMS_SASL_LOGIN_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerLoginCallbackHandler
+#      CONTROL_CENTER_STREAMS_SASL_OAUTHBEARER_TOKEN_ENDPOINT_URL: ${IDP_TOKEN_ENDPOINT}
+#      CONTROL_CENTER_STREAMS_SASL_JAAS_CONFIG: |
+#        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
+#        clientId="${C3_CLIENT_ID}" \
+#        clientSecret="${C3_CLIENT_SECRET}";
+#
+#      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_REPLICATION: 1
+#      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+#      CONTROL_CENTER_MONITORING_INTERCEPTOR_SASL_OAUTHBEARER_TOKEN_ENDPOINT_URL: ${IDP_TOKEN_ENDPOINT}
+#      CONTROL_CENTER_MONITORING_INTERCEPTOR_SASL_LOGIN_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerLoginCallbackHandler
+#      CONTROL_CENTER_MONITORING_INTERCEPTOR_SASL_JASS_CONFIG: |
+#        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
+#        clientId="${C3_CLIENT_ID}" \
+#        clientSecret="${C3_CLIENT_SECRET}";
+#
+#      CONTROL_CENTER_CONFLUENT_CONTROLCENTER_REST_LISTENERS: http://0.0.0.0:9021
+#      CONTROL_CENTER_CONFLUENT_CONTROLCENTER_REST_ADVERTISED_URL: http://control-center:9021
+#
+#      CONTROL_CENTER_CONNECT_CONNECT1_CLUSTER: http://connect:8083
+#      CONTROL_CENTER_CONNECT_CONNECT1_BEARER_AUTH_CREDENTIALS_SOURCE: OAUTHBEARER
+#
+#      CONTROL_CENTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+#      CONTROL_CENTER_SCHEMA_REGISTRY_BEARER_AUTH_CREDENTIALS_SOURCE: OAUTHBEARER
+#
+#      CONTROL_CENTER_KSQL_KSQLDB_URL: http://ksqldb-server:8088
+#
+#      CONTROL_CENTER_REST_AUTHENTICATION_METHOD: BEARER
+#      PUBLIC_KEY_PATH: /tmp/conf/public.pem
+#
+#      CONFLUENT_METADATA_BOOTSTRAP_SERVER_URLS: http://broker1:8091
+#      CONFLUENT_METADATA_HTTP_AUTH_CREDENTIALS_PROVIDER: OAUTHBEARER
+#      CONFLUENT_METADATA_OAUTHBEARER_LOGIN_CREDENTIALS_SOURCE: OAUTHBEARER
+#      CONFLUENT_METADATA_OAUTHBEARER_LOGIN_CLIENT_ID: ${C3_CLIENT_ID}
+#      CONFLUENT_METADATA_OAUTHBEARER_LOGIN_CLIENT_SECRET: ${C3_CLIENT_SECRET}
+#      CONFLUENT_METADATA_OAUTHBEARER_TOKEN_ENDPOINT_URL: ${IDP_TOKEN_ENDPOINT}
+#
+#      CONTROL_CENTER_AUTH_SSO_MODE: oidc
+#      CONTROL_CENTER_CONFLUENT_CONTROLCENTER_LICENCE_MANAGER_ENABLE: "false"
+#
+#      CONTROL_CENTER_STREAMS_CONFLUENT_METADATA_SERVER_URLS_FAIL_ON_401: 'false'
+#      CONTROL_CENTER_STREAMS_CONFLUENT_METADATA_ENABLE_SERVER_URLS_REFRESH: 'false'
+#
+#      CONTROL_CENTER_STREAMS_CACHE_MAX_BYTES_BUFFERING: 100000000
+#      CONTROL_CENTER_STREAMS_CONSUMER_REQUEST_TIMEOUT_MS: "960032"
+#      CONTROL_CENTER_STREAMS_NUM_STREAM_THREADS: 1
+#
+#      CONTROL_CENTER_METRICS_TOPIC_REPLICATION: 1
+#      CONTROL_CENTER_METRICS_TOPIC_PARTITIONS: 1
+#
+#      CUB_CLASSPATH: '/usr/share/java/confluent-control-center/*:/usr/share/java/rest-utils/*:/usr/share/java/confluent-common/*:/usr/share/java/confluent-security/kafka-rest/*:/usr/share/java/kafka-rest/:/usr/share/java/cp-base-new/*'
+#
+#      # OpenTelemetry configuration
+#      OTEL_COLLECTOR_HOST: otel-collector
+#      OTEL_COLLECTOR_PORT_GRPC: 4317
+#      OTEL_COLLECTOR_PORT_HTTP: 4318
+#      OTEL_JAVA_AGENT_ENABLED: 'true'
+#      OTEL_JAVA_AGENT_LOGGING: "application"
+#      OTEL_JAVA_AGENT_DEBUG: "false"
+#      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+#      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+#      OTEL_LOGS_EXPORTER: otlp
+#      OTEL_TRACES_EXPORTER: otlp
+#      OTEL_METRICS_EXPORTER: otlp
+#      OTEL_RESOURCE_ATTRIBUTES: service.namespace=control-center,service.instance.id=control-center
+#      EXTRA_ARGS: >
+#        -javaagent:/usr/bin/jmx/jmx_prometheus_javaagent.jar=1237:/usr/bin/jmx/exporter.yml
+#        -javaagent:/usr/bin/otel/opentelemetry-javaagent.jar
+
   # --------- Kafka Connect ---------
 #  connect:
 #    build:
@@ -914,115 +1025,6 @@ services:
 #      KSQL_PRODUCER_ENABLE_IDEMPOTENCE: 'true'
 #      KSQL_OPTS: '-Dconfluent.support.metrics.enable=false'
 #      CUB_CLASSPATH: '/usr/share/java/confluent-security/ksql/*:/usr/share/java/ksqldb-server/*:/usr/share/java/cp-base-new/*'
-#
-#  control-center:
-#    image: confluentinc/cp-enterprise-control-center:${CONFLUENT_DOCKER_TAG:-latest}
-#    container_name: control-center
-#    depends_on:
-#      broker1:
-#        condition: service_healthy
-#      init_permissions:
-#        condition: service_completed_successfully
-#      prometheus:
-#        condition: service_healthy
-#    ports:
-#      - "9021:9021"
-#      - "9022:9022"
-#      - "1237:1237"
-#    networks:
-#      - fluxin-network
-##    command: >
-##      rm -rf /usr/share/java/confluent-control-center/protobuf-java-util-3.24.4.jar &&
-##      /etc/confluent/docker/launch;
-#    healthcheck:
-#      test: curl --fail --silent http://control-center:9021 --output /dev/null || exit 1
-#      start_period: 10s
-#      interval: 10s
-#      retries: 3
-#    restart: unless-stopped
-#    volumes:
-#      - ./kafka/keypair:/tmp/conf
-#      - ./kafka/configs:/etc/confluent/configs
-#      - ./kafka/bin/opentelemetry-javaagent.jar:/usr/bin/otel/opentelemetry-javaagent.jar
-#      - ./kafka/bin/jmx_prometheus_javaagent.jar:/usr/bin/jmx/jmx_prometheus_javaagent.jar
-#      - ./kafka/metrics/exporter.yml:/usr/bin/jmx/exporter.yml
-#    environment:
-#      CONTROL_CENTER_BOOTSTRAP_SERVERS: EXTERNAL://broker1:9095
-#      CONTROL_CENTER_REPLICATION_FACTOR: 1
-#      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
-#      CONTROL_CENTER_LOG4J_ROOT_LOGLEVEL: INFO
-#      CONTROL_CENTER_LOG4J_LOGLEVEL: INFO
-#
-#      CONTROL_CENTER_STREAMS_SECURITY_PROTOCOL: SASL_PLAINTEXT
-#      CONTROL_CENTER_STREAMS_SASL_MECHANISM: OAUTHBEARER
-#      CONTROL_CENTER_STREAMS_SASL_LOGIN_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerLoginCallbackHandler
-#      CONTROL_CENTER_STREAMS_SASL_OAUTHBEARER_TOKEN_ENDPOINT_URL: ${IDP_TOKEN_ENDPOINT}
-#      CONTROL_CENTER_STREAMS_SASL_JAAS_CONFIG: |
-#        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
-#        clientId="${C3_CLIENT_ID}" \
-#        clientSecret="${C3_CLIENT_SECRET}";
-#
-#      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_REPLICATION: 1
-#      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
-#      CONTROL_CENTER_MONITORING_INTERCEPTOR_SASL_OAUTHBEARER_TOKEN_ENDPOINT_URL: ${IDP_TOKEN_ENDPOINT}
-#      CONTROL_CENTER_MONITORING_INTERCEPTOR_SASL_LOGIN_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerLoginCallbackHandler
-#      CONTROL_CENTER_MONITORING_INTERCEPTOR_SASL_JASS_CONFIG: |
-#        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
-#        clientId="${C3_CLIENT_ID}" \
-#        clientSecret="${C3_CLIENT_SECRET}";
-#
-#      CONTROL_CENTER_CONFLUENT_CONTROLCENTER_REST_LISTENERS: http://0.0.0.0:9021
-#      CONTROL_CENTER_CONFLUENT_CONTROLCENTER_REST_ADVERTISED_URL: http://control-center:9021
-#
-#      CONTROL_CENTER_CONNECT_CONNECT1_CLUSTER: http://connect:8083
-#      CONTROL_CENTER_CONNECT_CONNECT1_BEARER_AUTH_CREDENTIALS_SOURCE: OAUTHBEARER
-#
-#      CONTROL_CENTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-#      CONTROL_CENTER_SCHEMA_REGISTRY_BEARER_AUTH_CREDENTIALS_SOURCE: OAUTHBEARER
-#
-#      CONTROL_CENTER_KSQL_KSQLDB_URL: http://ksqldb-server:8088
-#
-#      CONTROL_CENTER_REST_AUTHENTICATION_METHOD: BEARER
-#      PUBLIC_KEY_PATH: /tmp/conf/public.pem
-#
-#      CONFLUENT_METADATA_BOOTSTRAP_SERVER_URLS: http://broker1:8091
-#      CONFLUENT_METADATA_HTTP_AUTH_CREDENTIALS_PROVIDER: OAUTHBEARER
-#      CONFLUENT_METADATA_OAUTHBEARER_LOGIN_CREDENTIALS_SOURCE: OAUTHBEARER
-#      CONFLUENT_METADATA_OAUTHBEARER_LOGIN_CLIENT_ID: ${C3_CLIENT_ID}
-#      CONFLUENT_METADATA_OAUTHBEARER_LOGIN_CLIENT_SECRET: ${C3_CLIENT_SECRET}
-#      CONFLUENT_METADATA_OAUTHBEARER_TOKEN_ENDPOINT_URL: ${IDP_TOKEN_ENDPOINT}
-#
-#      CONTROL_CENTER_AUTH_SSO_MODE: oidc
-#      CONTROL_CENTER_CONFLUENT_CONTROLCENTER_LICENCE_MANAGER_ENABLE: "false"
-#
-#      CONTROL_CENTER_STREAMS_CONFLUENT_METADATA_SERVER_URLS_FAIL_ON_401: 'false'
-#      CONTROL_CENTER_STREAMS_CONFLUENT_METADATA_ENABLE_SERVER_URLS_REFRESH: 'false'
-#
-#      CONTROL_CENTER_STREAMS_CACHE_MAX_BYTES_BUFFERING: 100000000
-#      CONTROL_CENTER_STREAMS_CONSUMER_REQUEST_TIMEOUT_MS: "960032"
-#      CONTROL_CENTER_STREAMS_NUM_STREAM_THREADS: 1
-#
-#      CONTROL_CENTER_METRICS_TOPIC_REPLICATION: 1
-#      CONTROL_CENTER_METRICS_TOPIC_PARTITIONS: 1
-#
-#      CUB_CLASSPATH: '/usr/share/java/confluent-control-center/*:/usr/share/java/rest-utils/*:/usr/share/java/confluent-common/*:/usr/share/java/confluent-security/kafka-rest/*:/usr/share/java/kafka-rest/:/usr/share/java/cp-base-new/*'
-#
-#      # OpenTelemetry configuration
-#      OTEL_COLLECTOR_HOST: otel-collector
-#      OTEL_COLLECTOR_PORT_GRPC: 4317
-#      OTEL_COLLECTOR_PORT_HTTP: 4318
-#      OTEL_JAVA_AGENT_ENABLED: 'true'
-#      OTEL_JAVA_AGENT_LOGGING: "application"
-#      OTEL_JAVA_AGENT_DEBUG: "false"
-#      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
-#      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
-#      OTEL_LOGS_EXPORTER: otlp
-#      OTEL_TRACES_EXPORTER: otlp
-#      OTEL_METRICS_EXPORTER: otlp
-#      OTEL_RESOURCE_ATTRIBUTES: service.namespace=control-center,service.instance.id=control-center
-#      EXTRA_ARGS: >
-#        -javaagent:/usr/bin/jmx/jmx_prometheus_javaagent.jar=1237:/usr/bin/jmx/exporter.yml
-#        -javaagent:/usr/bin/otel/opentelemetry-javaagent.jar
 
 volumes:
   broker1-data:

@@ -8,7 +8,6 @@ else
 fi
 echo "Processing $env_file"
 source "$env_file"
-# source ${DIR}/helper/cp_config.sh
 source "${DIR}"/helper/functions.sh
 
 #-------------------------------------------------------------------------------

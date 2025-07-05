@@ -1,12 +1,19 @@
-sasl.mechanism=OAUTHBEARER
 security.protocol=SASL_SSL
-sasl.login.callback.handler.class=org.apache.kafka.common.security.oauthbearer.secured.OAuthBearerLoginCallbackHandler
+sasl.mechanism=OAUTHBEARER
+sasl.login.callback.handler.class=io.strimzi.kafka.oauth.client.JaasClientOauthLoginCallbackHandler
 sasl.oauthbearer.token.endpoint.url=$IDP_TOKEN_ENDPOINT
 sasl.jaas.config=org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
-      clientId="$CLIENT_APP_ID" \
-      clientSecret="$CLIENT_APP_SECRET" \
-      ssl.truststore.type="PKCS12" \
-      ssl.endpoint.identification.algorithm="https" \
-      ssl.truststore.location="/etc/kafka/secrets/truststore.p12" \
-      ssl.truststore.password="${CERT_SECRET}";
+    oauth.client.id="$CLIENT_APP_ID" \
+    oauth.client.secret="$CLIENT_APP_SECRET" \
+    oauth.token.endpoint.uri="https://keycloak:8443/realms/cp/protocol/openid-connect/token" \
+    principalClaimName="sub" \
+    refresh_ms="3000" \
+    ssl.endpoint.identification.algorithm="https" \
+    ssl.keystore.type="PKCS12" \
+    ssl.keystore.location="/etc/kafka/secrets/keystore.p12" \
+    ssl.keystore.password="120103" \
+    ssl.key.password="120103"  \
+    ssl.truststore.type="PKCS12" \
+    ssl.truststore.location="/etc/kafka/secrets/truststore.p12" \
+    ssl.truststore.password="120103";
 
