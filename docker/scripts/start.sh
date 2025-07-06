@@ -19,5 +19,5 @@ create_client_files
 
 create_env_file
 
-docker compose -f ../docker-compose.yml up -d
+docker compose -f ../docker-compose1.yml up -d
 #docker compose -f ../identity-server.yml up -d

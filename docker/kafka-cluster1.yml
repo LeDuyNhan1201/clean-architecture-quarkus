@@ -220,23 +220,23 @@ services:
       KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_EXPECTED_ISSUER: ${IDP_EXPECTED_ISSUER}
       KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_SUB_CLAIM_NAME: ${SUB_CLAIM_NAME}
       KAFKA_LISTENER_NAME_EXTERNAL_SASL_OAUTHBEARER_GROUPS_CLAIM_NAME: ${GROUP_CLAIM_NAME}
-      KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
-            oauth.client.id="${CLIENT_APP_ID}" \
-            oauth.client.secret="${CLIENT_APP_SECRET}" \
-            oauth.token.endpoint.uri="${IDP_TOKEN_ENDPOINT}" \
-            principalClaimName="sub" \
-            refresh_ms="3000" \
-            ssl.endpoint.identification.algorithm="https" \
-            ssl.keystore.type="PKCS12" \
-            ssl.keystore.location="/etc/kafka/secrets/keystore.p12" \
-            ssl.keystore.password="${CERT_SECRET}" \
-            ssl.key.password="${CERT_SECRET}"  \
-            ssl.truststore.type="PKCS12" \
-            ssl.truststore.location="/etc/kafka/secrets/truststore.p12" \
-            ssl.truststore.password="${CERT_SECRET}";
+#      KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_JAAS_CONFIG: |
+#        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
+#            oauth.client.id="${CLIENT_APP_ID}" \
+#            oauth.client.secret="${CLIENT_APP_SECRET}" \
+#            oauth.token.endpoint.uri="${IDP_TOKEN_ENDPOINT}" \
+#            principalClaimName="sub" \
+#            refresh_ms="3000" \
+#            ssl.endpoint.identification.algorithm="https" \
+#            ssl.keystore.type="PKCS12" \
+#            ssl.keystore.location="/etc/kafka/secrets/keystore.p12" \
+#            ssl.keystore.password="${CERT_SECRET}" \
+#            ssl.key.password="${CERT_SECRET}"  \
+#            ssl.truststore.type="PKCS12" \
+#            ssl.truststore.location="/etc/kafka/secrets/truststore.p12" \
+#            ssl.truststore.password="${CERT_SECRET}";
       KAFKA_LISTENER_NAME_EXTERNAL_PRINCIPAL_BUILDER_CLASS: io.strimzi.kafka.oauth.server.OAuthKafkaPrincipalBuilder
-      KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_LOGIN_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.client.JaasClientOauthLoginCallbackHandler
+#      KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_LOGIN_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.client.JaasClientOauthLoginCallbackHandler
       KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.server.JaasServerOauthValidatorCallbackHandler
 
       KAFKA_LISTENER_NAME_EXTERNAL_SSL_CLIENT_AUTH: 'required'
@@ -261,6 +261,7 @@ services:
 #      KAFKA_CONFLUENT_METADATA_SERVER_ADVERTISED_LISTENERS: https://broker1:8091,https://broker1:8092,https://broker1:8093
       KAFKA_CONFLUENT_METADATA_SERVER_ADVERTISED_LISTENERS: https://broker1:8091
       KAFKA_CONFLUENT_METADATA_SERVER_OAUTHBEARER_JWKS_ENDPOINT_URL: ${IDP_JWKS_ENDPOINT}
+      KAFKA_CONFLUENT_METADATA_SERVER_OAUTHBEARER_TOKEN_ENDPOINT_URL: ${IDP_TOKEN_ENDPOINT}
       KAFKA_CONFLUENT_METADATA_SERVER_OAUTHBEARER_EXPECTED_AUDIENCE: ${EXPECTED_AUDIENCE}
       KAFKA_CONFLUENT_METADATA_SERVER_OAUTHBEARER_EXPECTED_ISSUER: ${IDP_EXPECTED_ISSUER}
       KAFKA_CONFLUENT_METADATA_SERVER_OAUTHBEARER_SUB_CLAIM_NAME: ${SUB_CLAIM_NAME}
@@ -328,31 +329,32 @@ services:
       # EmbeddedKafkaRest
       KAFKA_KAFKA_REST_ENABLE: 'true'
       KAFKA_KAFKA_REST_SCHEMA_REGISTRY_URL: https://schema-registry1:8081
-      KAFKA_KAFKA_REST_OAUTHBEARER_JWKS_ENDPOINT_URL: ${IDP_JWKS_ENDPOINT}
-      KAFKA_KAFKA_REST_OAUTHBEARER_EXPECTED_ISSUER: ${IDP_EXPECTED_ISSUER}
-      KAFKA_KAFKA_REST_OAUTHBEARER_EXPECTED_AUDIENCE: ${EXPECTED_AUDIENCE}
-      KAFKA_KAFKA_REST_OAUTHBEARER_SUB_CLAIM_NAME: ${SUB_CLAIM_NAME}
-      KAFKA_KAFKA_REST_OAUTHBEARER_GROUPS_CLAIM_NAME: ${GROUP_CLAIM_NAME}
+#      KAFKA_KAFKA_REST_OAUTHBEARER_JWKS_ENDPOINT_URL: ${IDP_JWKS_ENDPOINT}
+#      KAFKA_KAFKA_REST_OAUTHBEARER_EXPECTED_ISSUER: ${IDP_EXPECTED_ISSUER}
+#      KAFKA_KAFKA_REST_OAUTHBEARER_EXPECTED_AUDIENCE: ${EXPECTED_AUDIENCE}
+#      KAFKA_KAFKA_REST_OAUTHBEARER_SUB_CLAIM_NAME: ${SUB_CLAIM_NAME}
+#      KAFKA_KAFKA_REST_OAUTHBEARER_GROUPS_CLAIM_NAME: ${GROUP_CLAIM_NAME}
+      KAFKA_KAFKA_REST_OAUTHBEARER_TOKEN_ENDPOINT_URL: ${IDP_TOKEN_ENDPOINT}
       KAFKA_KAFKA_REST_OAUTHBEARER_LOGIN_CLIENT_ID: ${RP_CLIENT_ID}
       KAFKA_KAFKA_REST_OAUTHBEARER_LOGIN_CLIENT_SECRET: ${RP_CLIENT_SECRET}
-      KAFKA_KAFKA_REST_OAUTHBEARER_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
-            oauth.client.id="${RP_CLIENT_ID}" \
-            oauth.client.secret="${RP_CLIENT_SECRET}" \
-            oauth.token.endpoint.uri="${IDP_TOKEN_ENDPOINT}" \
-            principalClaimName="sub" \
-            refresh_ms="3000" \
-            ssl.endpoint.identification.algorithm="https" \
-            ssl.keystore.type="PKCS12" \
-            ssl.keystore.location="/etc/kafka/secrets/keystore.p12" \
-            ssl.keystore.password="${CERT_SECRET}" \
-            ssl.key.password="${CERT_SECRET}"  \
-            ssl.truststore.type="PKCS12" \
-            ssl.truststore.location="/etc/kafka/secrets/truststore.p12" \
-            ssl.truststore.password="${CERT_SECRET}";
-      KAFKA_KAFKA_REST_PRINCIPAL_BUILDER_CLASS: io.strimzi.kafka.oauth.server.OAuthKafkaPrincipalBuilder
-      KAFKA_KAFKA_REST_OAUTHBEARER_SASL_LOGIN_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.client.JaasClientOauthLoginCallbackHandler
-      KAFKA_KAFKA_REST_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.server.JaasServerOauthValidatorCallbackHandler
+#      KAFKA_KAFKA_REST_OAUTHBEARER_SASL_JAAS_CONFIG: |
+#        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
+#            oauth.client.id="${RP_CLIENT_ID}" \
+#            oauth.client.secret="${RP_CLIENT_SECRET}" \
+#            oauth.token.endpoint.uri="${IDP_TOKEN_ENDPOINT}" \
+#            principalClaimName="sub" \
+#            refresh_ms="3000" \
+#            ssl.endpoint.identification.algorithm="https" \
+#            ssl.keystore.type="PKCS12" \
+#            ssl.keystore.location="/etc/kafka/secrets/keystore.p12" \
+#            ssl.keystore.password="${CERT_SECRET}" \
+#            ssl.key.password="${CERT_SECRET}"  \
+#            ssl.truststore.type="PKCS12" \
+#            ssl.truststore.location="/etc/kafka/secrets/truststore.p12" \
+#            ssl.truststore.password="${CERT_SECRET}";
+#      KAFKA_KAFKA_REST_PRINCIPAL_BUILDER_CLASS: io.strimzi.kafka.oauth.server.OAuthKafkaPrincipalBuilder
+#      KAFKA_KAFKA_REST_OAUTHBEARER_SASL_LOGIN_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.client.JaasClientOauthLoginCallbackHandler
+#      KAFKA_KAFKA_REST_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: io.strimzi.kafka.oauth.server.JaasServerOauthValidatorCallbackHandler
 
 #      KAFKA_KAFKA_REST_PUBLIC_KEY_PATH: /tmp/conf/public.pem
       KAFKA_KAFKA_REST_KAFKA_REST_RESOURCE_EXTENSION_CLASS: io.confluent.kafkarest.security.KafkaRestSecurityResourceExtension

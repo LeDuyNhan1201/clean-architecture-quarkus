@@ -52,7 +52,7 @@ keytool -list \
 -storepass 120103
 
 keytool -list \
--keystore /home/ben/Downloads/clean-architecture-quarkus/docker/kafka/broker1/certs/truststore.p12 \
+-keystore /home/ben/Projects/clean-architecture-quarkus/docker/keycloak/certs/truststore.p12 \
 -storetype PKCS12 \
 -storepass 120103
 

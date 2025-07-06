@@ -5,14 +5,14 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-docker compose -f ../docker-compose.yml down -v
+docker compose -f ../docker-compose1.yml down -v
 
 echo "Removing certs..."
 
-#rm -f ../kafka/broker1/certs/*
-#rm -f ../kafka/broker2/certs/*
-#rm -f ../kafka/broker3/certs/*
-#rm -f ../kafka/keypair/*
+rm -f ../kafka/broker1/certs/*
+rm -f ../kafka/broker2/certs/*
+rm -f ../kafka/broker3/certs/*
+rm -f ../kafka/keypair/*
 rm -f ../kafka/schema-registry1/certs/*
 #rm -f ../keycloak/certs/*
 #rm -f ../../src/adapter/src/main/resources/certs/*
