@@ -19,7 +19,7 @@ docker rm -f -v postgres
 docker exec -it keycloak /bin/bash 
 /opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data/export --realm kafka --users realm_file
 
-docker inspect broker1 | jq '.[0].State.Health.Log[] | {ExitCode, Output}'
+docker inspect schema-registry1 | jq '.[0].State.Health.Log[] | {ExitCode, Output}'
 ```
 
 ```shell
@@ -137,3 +137,16 @@ volumes:
         -Dlistener.name.oauth.oauthbearer.jwks.endpoint.url=http://keycloak:8080/realms/kafka/protocol/openid-connect/certs
         -Dlistener.name.oauth.oauthbearer.expected.issuer=http://keycloak:8080/realms/kafka
         -Dlistener.name.oauth.oauthbearer.username.claim=sub
+
+
+curl --insecure https://localhost:8081/subject --cert /certs/cert.pem --key /certs/key.pem --cacert /certs/ca.crt
+
+curl -d "client_id=superuser_client_app" -d "client_secret=superuser_client_app_secret" -d "grant_type=client_credentials" --insecure https://localhost:8443/realms/cp/protocol/openid-connect/token
+
+curl -X POST --insecure https://localhost:8091/security/1.0/principals -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJlOFQ0Q3c3SmdSQW4zWWFpZU41NXptQngxaDYwN3J2Q041Qm5xNzNhUWZVIn0.eyJleHAiOjE3NTE4NzcwNjIsImlhdCI6MTc1MTg3MzQ2MiwianRpIjoidHJydGNjOmY3NGU4MTgxLTk4ZTctNGU3Ni04OGVkLTY0NTM3NmI0YzIzZiIsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0Ojg0NDMvcmVhbG1zL2NwIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6InN1cGVydXNlcl9jbGllbnRfYXBwIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoic3VwZXJ1c2VyX2NsaWVudF9hcHAiLCJhY3IiOiIxIiwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwiZGVmYXVsdC1yb2xlcy1jcCIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiJHtjbGllbnRJZH0iOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsImNsaWVudElkIjoic3VwZXJ1c2VyX2NsaWVudF9hcHAiLCJjbGllbnRIb3N0IjoiMTcyLjE4LjAuMSIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwiZ3JvdXBzIjpbIi9hcHBfZ3JvdXAxIiwiL3N1cGVyX3VzZXJzIl0sInByZWZlcnJlZF91c2VybmFtZSI6InNlcnZpY2UtYWNjb3VudC1zdXBlcnVzZXJfY2xpZW50X2FwcCIsImNsaWVudEFkZHJlc3MiOiIxNzIuMTguMC4xIn0.l9wTut5RFuFDtCMgYJmmtvi-ZRKR628WP-AoTj7fwPokkY1wKHOFbz10XWrAeyuhRFfACng8jkai331QvkY_jwZb3M-4nXnlTXmPnX7QP_uao_2CSoD8q7B8ilCQg_Ogbi_Rp1gRkVLTibwLBc40NAAyx0_NQQ0rUrezY6mumYAkUjNemxq2u2HlZe525UwBSZX8dW3evdyJFjlnqr_wuH8P6qGiHqHxqTdV_6Gw7YNhIMfMf3aAJqZpjzSetwwYVYEWBbfcIdOL_SSqmspaiu11IgBv05TuXzzsagnCQgle9eUpWaaNqhJfI_PNI8xXF0eL3Ji_lkdOBd77m71QkA" -i -H "Content-Type: application/json" -H "Accept: application/json" -d '{"clusters":{"kafka-cluster":"vHCgQyIrRHG8Jv27qI2h3Q"}}'
+
+
+curl -X POST --insecure https://localhost:8091/security/1.0/principals/User:service-account-kafka/roles/SystemAdmin -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ1dHBLbDZRSEpoM1RhZk9JOWJRWWZPbW82ZmpPYWZ0MXNyUUUzT2JUeVdzIn0.eyJleHAiOjE3NTE4NjEwNDcsImlhdCI6MTc1MTg2MDc0NywianRpIjoidHJydGNjOmI4NGE4OGIwLTNjMWEtNDZkZC05MzIwLTA0NTFkYzZlZTA5MyIsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0Ojg0NDMvcmVhbG1zL2thZmthIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6ImthZmthIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoia2Fma2EiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbIi8qIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzLWthZmthIiwib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwiY2xpZW50SG9zdCI6IjE3Mi4xOC4wLjEiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJzZXJ2aWNlLWFjY291bnQta2Fma2EiLCJjbGllbnRBZGRyZXNzIjoiMTcyLjE4LjAuMSIsImNsaWVudF9pZCI6ImthZmthIn0.kp8ljvu0xgAJ1BkncZajqTftXCOjfFWFtcVi7GBvHHiDIfMU8xd6h850XrKJAq4JAvtDlXzDWsb-cnSBjHOZJjEyY73s2u-V618GXOfTwY7adZOZRUqW_6I0aSZF8pndMp5u3SwoXZRymN_KQXEvT9Y_RL1TnSPVcRZHfTqKLMENxEQWOK-3pDPRuKo3qGs8ujZw8yxR4j9bEMV-4ZQrzk4_s67jhbCCYa_WQfk4ntVjuE-5Cmddg4X_Yul2RYfHdTFlxTmXewrYHXcxk-FD1_5WDzOgDe5ufKH18niwbE5fzPthSXJ5H4WGRpiRPNt8aQmVud5zLslsHvpHJoIlQA" -i -H "Content-Type: application/json" -H "Accept: application/json" -d '{"clusters":{"kafka-cluster":"vHCgQyIrRHG8Jv27qI2h3Q"}}'
+
+
+kafka-topics --bootstrap-server localhost:19091 --describe --topic quote-requests

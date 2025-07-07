@@ -3,12 +3,16 @@ package org.tma.intern.application.service.impl;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.tma.intern.application.exception.Error;
 import org.tma.intern.application.exception.HttpException;
 import org.tma.intern.application.injection.IdentityProviderClient;
@@ -26,6 +30,11 @@ import java.util.stream.IntStream;
 public class UserServiceImpl implements UserService {
 
     IdentityProviderClient keycloakClient;
+
+    @NonFinal
+    @Inject
+    @Channel("user-id-out")
+    Emitter<String> userIdEmitter;
 
     Faker faker = new Faker();
 
@@ -52,15 +61,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Multi<String> seedUsers(int count, String... roles) {
+    public Uni<List<String>> seedUsers(int count, String... roles) {
         List<IdentityUser> fakeUsers = IntStream.range(0, count)
-                .mapToObj(i -> IdentityUser.builder()
-                        .username(faker.oscarMovie().character())
-                        .email(faker.naruto() + "@lmao.com")
-                        .password("123456")
-                        .build()).toList();
+            .mapToObj(i -> IdentityUser.builder()
+                .username(faker.oscarMovie().character().trim().replace(" ", "").toLowerCase())
+                .email(faker.naruto().character().trim().replace(" ", "").toLowerCase() + "@gmail.com")
+                .password("123456")
+                .build())
+            .toList();
 
-        return keycloakClient.createUsers(fakeUsers, roles).invoke(id -> log.info("Created userId: {}", id));
+        return keycloakClient.createUsers(fakeUsers, roles)
+            .onItem().invoke(id -> log.info("Created userId: {}", id))
+            .onItem().transformToUni(id ->
+                Uni.createFrom().completionStage(userIdEmitter.send(id))
+                    .map(ignored -> id)
+            )
+            .concatenate()
+            .collect().asList();
     }
 
 }

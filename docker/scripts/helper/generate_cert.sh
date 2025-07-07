@@ -17,8 +17,27 @@ openssl genpkey -algorithm RSA \
   -out "$CERT_DIR/key.pem" \
   -pkeyopt rsa_keygen_bits:4096
 
-# === 🧾 OpenSSL config with SANs ===
+# === 🧾 OpenSSL config with SANs (including optional SUB_DOMAINS) ===
 echo "📄 Creating OpenSSL config with SANs..."
+
+SUB_DOMAINS=${SUB_DOMAINS:-}
+
+SAN_TEXT=""
+COUNT=1
+
+SAN_TEXT="${SAN_TEXT}DNS.${COUNT} = $MAIN_DOMAIN\n"; COUNT=$((COUNT + 1))
+SAN_TEXT="${SAN_TEXT}DNS.${COUNT} = localhost\n"; COUNT=$((COUNT + 1))
+SAN_TEXT="${SAN_TEXT}DNS.${COUNT} = 127.0.0.1\n"; COUNT=$((COUNT + 1))
+
+IFS=';'
+for sub in $SUB_DOMAINS; do
+  sub=$(echo "$sub" | xargs)
+  if [ -n "$sub" ]; then
+    SAN_TEXT="${SAN_TEXT}DNS.${COUNT} = $sub\n"
+    COUNT=$((COUNT + 1))
+  fi
+done
+
 cat > "$CERT_DIR/$ALIAS.openssl.cnf" <<EOF
 [ req ]
 default_bits       = 4096
@@ -30,7 +49,7 @@ req_extensions     = req_ext
 [ dn ]
 C = VN
 ST = BinhTan
-L = HCM
+L = HoChiMinh
 O = TMA
 OU = Dev
 CN = $MAIN_DOMAIN
@@ -39,12 +58,7 @@ CN = $MAIN_DOMAIN
 subjectAltName = @alt_names
 
 [ alt_names ]
-DNS.1 = $MAIN_DOMAIN
-DNS.2 = localhost
-DNS.3 = 127.0.0.1
-DNS.4 = ${MAIN_DOMAIN}.local
-DNS.5 = ${MAIN_DOMAIN}.docker
-DNS.6 = ${MAIN_DOMAIN}.k8s
+$(printf "$SAN_TEXT")
 EOF
 
 # === 📑 Generate CSR ===

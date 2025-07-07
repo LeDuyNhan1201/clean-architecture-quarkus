@@ -16,7 +16,7 @@ openssl genrsa -out "$CA_KEY" 4096
 echo "📜 Generating self-signed Root CA certificate..."
 openssl req -x509 -new -nodes -key "$CA_KEY" \
     -sha256 -days 3650 \
-    -subj "/C=VN/ST=BinhTan/L=HoChiMinh/O=TMA/OU=Dev/CN=LDNhanCA" \
+    -subj "/C=VN/ST=BinhTan/L=HCM/O=TMA/OU=Dev/CN=LDNhanCA" \
     -out "$CA_CERT"
 
 chmod 777 "$CA_KEY" "$CA_CERT"

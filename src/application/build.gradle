@@ -1,4 +1,7 @@
 dependencies {
     api project(':contract')
     implementation rootProject.ext.libs.dataFaker
+    api rootProject.ext.libs.messagingKafka
+    api rootProject.ext.libs.kafkaOauthClient
+    api rootProject.ext.libs.kafkaOauthCommon
 }

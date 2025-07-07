@@ -7,7 +7,10 @@ import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -55,14 +58,15 @@ public class UsersResource extends BaseResource {
     @GET
     @Path("/seed/{count}")
     @NoCache
-    @Blocking
     @Operation(summary = "Seed users", description = "API to seed user with [Role]:user.")
     @APIResponse(responseCode = "500", description = "Seed data failed !!!",
         content = @Content(schema = @Schema(implementation = String.class)))
     @APIResponse(responseCode = "200", description = "Success",
-        content = @Content(schema = @Schema(implementation = Integer.class)))
-    public RestResponse<Multi<String>> seedUsers(int count) {
-        return RestResponse.ResponseBuilder.ok(userService.seedUsers(count), MediaType.APPLICATION_JSON).build();
+        content = @Content(schema = @Schema(implementation = String.class)))
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<Response> seedUsers(@PathParam("count") int count) {
+        return userService.seedUsers(count)
+            .onItem().transform(userIds -> Response.ok(userIds).build());
     }
 
 }

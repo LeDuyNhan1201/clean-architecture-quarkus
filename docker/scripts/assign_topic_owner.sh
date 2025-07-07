@@ -8,7 +8,8 @@ TOPIC_NAME="$1"
 auth_token=$(curl -s -d "client_id=$SUPERUSER_CLIENT_ID" \
                   -d "client_secret=$SUPERUSER_CLIENT_SECRET" \
                   -d "grant_type=client_credentials" \
-                  --insecure "$IDP_TOKEN_ENDPOINT" | \
+                  --insecure "$IDP_TOKEN_ENDPOINT" \
+                  --cert /certs/client.crt --key /certs/client.key --cacert /certs/ca.crt | \
              grep -Po '"access_token": *\K"[^"]*"' | grep -o '[^"]*')
 
 echo "Access Token: $auth_token"
