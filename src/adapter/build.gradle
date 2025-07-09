@@ -7,5 +7,5 @@ dependencies {
 
     testImplementation rootProject.ext.libs.restAssured
 
-    runtimeOnly project(':infrastructure')
+    implementation project(':infrastructure')
 }

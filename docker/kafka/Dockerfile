@@ -1,5 +1,5 @@
-ARG CONFLUENT_DOCKER_TAG
-FROM confluentinc/cp-server:${CONFLUENT_DOCKER_TAG}
+ARG POSTGRES_DOCKER_TAG
 
-COPY libs/*.jar /usr/share/java/kafka/
-#COPY libs/*.jar /opt/kafka/libs/
+FROM provectuslabs/kafka-ui:${POSTGRES_DOCKER_TAG}
+
+COPY libs/*.jar /app/libs/

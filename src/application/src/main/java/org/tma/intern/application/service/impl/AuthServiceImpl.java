@@ -9,7 +9,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.tma.intern.application.exception.HttpException;
 import org.tma.intern.application.exception.Error;
-import org.tma.intern.application.injection.IdentityProviderClient;
+import org.tma.intern.application.injection.IdentityServerAdmin;
 import org.tma.intern.application.service.AuthService;
 import org.tma.intern.contract.RequestDto.AuthRequest;
 import org.tma.intern.contract.ResponseDto.AuthResponse;
@@ -20,7 +20,7 @@ import org.tma.intern.contract.ResponseDto.AuthResponse;
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
-    IdentityProviderClient keycloakClient;
+    IdentityServerAdmin keycloakClient;
 
     @Override
     public Uni<AuthResponse.Tokens> getTokens(AuthRequest.SignIn request) {

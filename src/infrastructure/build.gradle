@@ -2,6 +2,7 @@ dependencies {
     implementation project(':application')
 
     api rootProject.ext.libs.quarkusOidc
+    api rootProject.ext.libs.quarkusSecurity
     api rootProject.ext.libs.keycloakAuthorization
     api rootProject.ext.libs.keycloakAdmin
     api rootProject.ext.libs.messagingKafka

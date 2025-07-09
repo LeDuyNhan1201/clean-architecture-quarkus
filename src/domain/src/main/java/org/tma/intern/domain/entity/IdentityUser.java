@@ -13,12 +13,10 @@ public class IdentityUser {
 
     String id;
 
-    String username;
-
     String email;
 
-    String phone;
-
     String password;
+
+    String region;
 
 }

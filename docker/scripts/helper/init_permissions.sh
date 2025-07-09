@@ -41,7 +41,7 @@ assign_role_bindings() {
 }
 
 create_topic() {
-  kafka-topics --bootstrap-server localhost:39092 --topic user-ids --create --command-config /etc/confluent/configs/superuser.properties
+  kafka-topics --bootstrap-server broker1:59092 --topic $1 --create --command-config /etc/confluent/configs/superuser.properties
 }
 
 # Run it

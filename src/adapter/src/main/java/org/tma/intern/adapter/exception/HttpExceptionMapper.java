@@ -7,7 +7,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.tma.intern.adapter.component.MessagesProvider;
+import org.tma.intern.application.injection.MessagesProvider;
 import org.tma.intern.application.exception.HttpException;
 import org.tma.intern.application.exception.Error;
 import org.tma.intern.contract.ResponseDto.ErrorResponse;

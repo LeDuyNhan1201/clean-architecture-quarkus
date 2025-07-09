@@ -1,5 +1,6 @@
 package org.tma.intern.contract.mapper;
 
+import org.bson.types.ObjectId;
 import org.tma.intern.contract.helper.TimeHelper;
 
 import java.time.Instant;
@@ -14,6 +15,10 @@ public interface BaseMapper {
 
     default String map(Instant instant) {
         return instant == null ? null : TimeHelper.format(instant, TimeHelper.yyyyMMdd_HHmmss);
+    }
+
+    default String map(ObjectId instant) {
+        return instant == null ? null : instant.toHexString();
     }
 
 }

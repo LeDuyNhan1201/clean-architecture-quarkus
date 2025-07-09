@@ -6,18 +6,22 @@ import org.tma.intern.contract.RequestDto.ConcertRequest;
 import org.tma.intern.contract.ResponseDto.ConcertResponse;
 import org.tma.intern.contract.ResponseDto.PageResponse;
 
+import java.util.List;
+
 public interface ConcertService {
 
-    Uni<Long> create(ConcertRequest.Body request);
+    Uni<String> create(ConcertRequest.Body request);
 
-    Uni<Long> update(Long id, ConcertRequest.Body request);
+    Uni<String> update(String id, ConcertRequest.Body request);
 
-    Uni<Long> softDelete(Long id);
+    Uni<String> approve(String id);
 
-    Uni<ConcertResponse.Preview> findById(Long id);
+    Uni<String> softDelete(String id);
+
+    Uni<ConcertResponse.Details> findById(String id);
 
     Uni<PageResponse<ConcertResponse.Preview>> findAll(int page, int limit);
 
-    Multi<Long> seedData(int count);
+    Uni<List<String>> seedData(int count);
 
 }

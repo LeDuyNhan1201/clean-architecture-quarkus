@@ -1,4 +1,4 @@
-package org.tma.intern.adapter.component;
+package org.tma.intern.application.injection;
 
 import jakarta.enterprise.context.RequestScoped;
 import lombok.AccessLevel;
@@ -21,6 +21,11 @@ public class MessagesProvider {
         Locale locale = localeProvider.getLocale();
         ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
         return bundle.getString(key);
+    }
+
+    public String getRegion() {
+        log.info("[{}] Current Locale: {}", MessagesProvider.class.getName(), localeProvider.getLocale());
+        return localeProvider.getLocale().toLanguageTag();
     }
 
     public String get(String key, Object... args) {

@@ -2,9 +2,9 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 if [ "$1" ]; then
-  env_file=${DIR}/helper/idp_config-$1.sh
+  env_file=${DIR}/helper/env_config-$1.sh
 else
-  env_file=${DIR}/helper/idp_config.sh
+  env_file=${DIR}/helper/env_config.sh
 fi
 echo "Processing $env_file"
 source "$env_file"

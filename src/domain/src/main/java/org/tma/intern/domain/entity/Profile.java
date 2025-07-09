@@ -7,7 +7,6 @@ import lombok.experimental.SuperBuilder;
 import org.tma.intern.domain.enums.Gender;
 
 import java.util.Date;
-import java.util.List;
 
 @Entity
 @Table(name = "profiles")

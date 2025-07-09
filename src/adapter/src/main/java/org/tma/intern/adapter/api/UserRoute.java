@@ -2,7 +2,6 @@ package org.tma.intern.adapter.api;
 
 import io.quarkus.vertx.web.*;
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
 import org.eclipse.microprofile.openapi.annotations.security.*;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.tma.intern.application.injection.IdentityContext;
 import org.tma.intern.application.service.UserService;
@@ -53,22 +51,6 @@ public class UserRoute {
     @Route(methods = Route.HttpMethod.GET, path = ":id")
     Uni<UserResponse.PreviewUser> readSingle(@Param String id, RoutingContext context) {
         return Uni.createFrom().item(UserResponse.PreviewUser::new);
-    }
-
-    @Operation(summary = "Get current username", description = "API to get name of current user")
-    @SecurityRequirement(name = "basic_bearer")
-    @Route(path = "me", methods = Route.HttpMethod.GET)
-    void me(RoutingContext rc) {
-        identityContext.getCurrentUser() // returns Uni<String>
-            .subscribe().with(username -> {
-                JsonObject json = new JsonObject()
-                    .put("username", username);
-                rc.response()
-                    .putHeader("Content-Type", "application/json")
-                    .end(json.encode());
-            }, failure -> rc.response()
-                .setStatusCode(500)
-                .end("Error: " + failure.getMessage()));
     }
 
 }

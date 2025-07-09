@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
 import org.tma.intern.application.exception.Error;
 import org.tma.intern.application.exception.HttpException;
-import org.tma.intern.application.injection.IdentityProviderClient;
+import org.tma.intern.application.injection.IdentityServerAdmin;
 import org.tma.intern.application.service.ProfileService;
 import org.tma.intern.contract.RequestDto.ProfileRequest;
 import org.tma.intern.contract.ResponseDto.ProfileResponse;
@@ -36,7 +36,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     ProfileRepository profileRepository;
 
-    IdentityProviderClient keycloakClient;
+    IdentityServerAdmin keycloakClient;
 
     ProfileMapper profileMapper;
 

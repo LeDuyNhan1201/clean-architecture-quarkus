@@ -7,15 +7,17 @@ import org.tma.intern.domain.entity.IdentityUser;
 import java.util.List;
 import java.util.Map;
 
-public interface IdentityProviderClient {
+public interface IdentityServerAdmin {
 
     Multi<String> getRoles();
 
     Multi<String> getUserIds(int count);
 
-    Uni<String> create(IdentityUser entity, String... roles);
+    Uni<String> createUser(IdentityUser entity, String... roles);
 
-    Uni<String> delete(String id);
+    Uni<String> deleteUser(String id);
+
+    Uni<String> createConcertResource(Long concertId, String region);
 
     Uni<Map<String, String>> getTokens(String username, String password);
 

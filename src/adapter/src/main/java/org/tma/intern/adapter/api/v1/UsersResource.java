@@ -1,8 +1,6 @@
 package org.tma.intern.adapter.api.v1;
 
 import io.quarkus.security.Authenticated;
-import io.smallrye.common.annotation.Blocking;
-import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -47,12 +45,13 @@ public class UsersResource extends BaseResource {
     @APIResponse(responseCode = "200", description = "Success",
         content = @Content(schema = @Schema(implementation = UserResponse.PreviewUser.class)))
     public Uni<RestResponse<UserResponse.PreviewUser>> me() {
-        return identityContext.getCurrentUser()
-            .onItem().transform(username ->
-                RestResponse.ResponseBuilder
-                    .ok(UserResponse.PreviewUser.builder().username(username).build(), MediaType.APPLICATION_JSON)
-                    .build()
-            );
+        return Uni.createFrom().item(() ->
+            RestResponse.ResponseBuilder
+                .ok(UserResponse.PreviewUser.builder()
+                    .id(identityContext.getClaim("sub"))
+                    .email(identityContext.getCurrentUser())
+                    .roles(identityContext.getRoles()).build()
+                ).build());
     }
 
     @GET

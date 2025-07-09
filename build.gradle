@@ -25,7 +25,7 @@ allprojects {
 }
 
 subprojects {
-    if (project.name != 'common') {
+    if (project.name != 'contract') {
         apply plugin: 'io.quarkus'
     }
 
@@ -40,7 +40,7 @@ subprojects {
         apply plugin: 'java-library'
     }
 
-    if (project.name == 'common') {
+    if (project.name == 'contract') {
         tasks.named("jar") {
             enabled = true
         }

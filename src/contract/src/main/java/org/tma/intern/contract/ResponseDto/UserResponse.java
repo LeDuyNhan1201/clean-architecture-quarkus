@@ -3,6 +3,8 @@ package org.tma.intern.contract.ResponseDto;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 public class UserResponse {
 
     @Getter
@@ -15,7 +17,9 @@ public class UserResponse {
 
         String id;
 
-        String username;
+        String email;
+
+        List<String> roles;
 
     }
 

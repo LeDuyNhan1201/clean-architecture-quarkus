@@ -1,4 +1,4 @@
-package org.tma.intern.adapter.component;
+package org.tma.intern.application.injection;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.ws.rs.core.HttpHeaders;

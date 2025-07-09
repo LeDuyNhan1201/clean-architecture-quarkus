@@ -12,17 +12,27 @@ public class ConcertResponse {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Preview {
-
-        Long id;
-
+        String id;
         String title;
-
-        String shortDescription;
-
+        String location;
         String startTime;
-
         String endTime;
+    }
 
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class Details {
+        String id;
+        String name;
+        String startTime;
+        String endTime;
+        String location;
+        String region;
+        boolean isApproved;
     }
 
 }

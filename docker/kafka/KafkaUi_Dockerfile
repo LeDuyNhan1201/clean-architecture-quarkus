@@ -1,0 +1,7 @@
+ARG POSTGRES_DOCKER_TAG
+
+FROM provectuslabs/kafka-ui:${POSTGRES_DOCKER_TAG}
+
+COPY /libs/*.jar /app/libs/
+
+ENTRYPOINT ["java", "-cp", "/kafka-ui-api.jar:/app/libs/*", "com.provectus.kafka.ui.KafkaUiApplication"]

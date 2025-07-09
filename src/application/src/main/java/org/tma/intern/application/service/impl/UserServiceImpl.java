@@ -1,6 +1,5 @@
 package org.tma.intern.application.service.impl;
 
-import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -15,7 +14,8 @@ import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.tma.intern.application.exception.Error;
 import org.tma.intern.application.exception.HttpException;
-import org.tma.intern.application.injection.IdentityProviderClient;
+import org.tma.intern.application.injection.IdentityServerAdmin;
+import org.tma.intern.application.service.BaseService;
 import org.tma.intern.application.service.UserService;
 import org.tma.intern.contract.RequestDto.UserRequest;
 import org.tma.intern.domain.entity.IdentityUser;
@@ -27,9 +27,9 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends BaseService implements UserService {
 
-    IdentityProviderClient keycloakClient;
+    IdentityServerAdmin keycloakClient;
 
     @NonFinal
     @Inject
@@ -40,10 +40,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Uni<String> create(UserRequest.Creation request) {
-        return keycloakClient.create(IdentityUser.builder()
-                .username(request.username())
+        return keycloakClient.createUser(IdentityUser.builder()
                 .email(request.email())
                 .password(request.password())
+                .region(messages.getRegion())
                 .build()).onFailure().transform(throwable ->
                 new HttpException(Error.ACTION_FAILED, throwable,
                         Response.Status.NOT_IMPLEMENTED, "Create", "user"));
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Uni<String> delete(String id) {
         try {
-            return keycloakClient.delete(id);
+            return keycloakClient.deleteUser(id);
         } catch (Exception exception) {
             log.error("Keycloak user deletion failed:  {}", exception.getMessage());
             throw new HttpException(Error.ACTION_FAILED, exception.getCause(),
@@ -64,7 +64,6 @@ public class UserServiceImpl implements UserService {
     public Uni<List<String>> seedUsers(int count, String... roles) {
         List<IdentityUser> fakeUsers = IntStream.range(0, count)
             .mapToObj(i -> IdentityUser.builder()
-                .username(faker.oscarMovie().character().trim().replace(" ", "").toLowerCase())
                 .email(faker.naruto().character().trim().replace(" ", "").toLowerCase() + "@gmail.com")
                 .password("123456")
                 .build())

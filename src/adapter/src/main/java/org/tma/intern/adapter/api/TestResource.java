@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestResponse;
-import org.tma.intern.application.injection.IdentityProviderClient;
+import org.tma.intern.application.injection.IdentityServerAdmin;
 import org.tma.intern.contract.RequestDto.ProfileRequest;
 import org.tma.intern.contract.ResponseDto.CommonResponse;
 
@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 public class TestResource extends BaseResource {
 
-    IdentityProviderClient keycloakClient;
+    IdentityServerAdmin keycloakClient;
 
     @Produces(MediaType.APPLICATION_JSON)
     @GET
